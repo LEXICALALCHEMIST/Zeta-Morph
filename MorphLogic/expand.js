@@ -1,32 +1,29 @@
-// expand.js
-// Located in ZetaMorph/MorphLogic/
-
 import { SYMBOL_SEQUENCE, VOID_SYMBOL } from '../core/sacred9.js';
 
 export default class Expand {
   expand(skeleton, carryValue, remainder) {
     console.log(`Expanding skeleton with carry: ${carryValue}, remainder: ${remainder}`);
     
-    // Current skeleton state
     const units = [skeleton.unit1, skeleton.unit2, skeleton.unit3];
     const oldNumberLength = skeleton.numberLength || 1;
-    const newNumberLength = Math.min(oldNumberLength + 1, 3); // Max 3 units
+    const newNumberLength = Math.min(oldNumberLength + 1, 3);
     
-    // Shift units right
-    const newSymbols = [SYMBOL_SEQUENCE[carryValue]]; // Unit1 = carry (e.g., 1 → ●)
-    newSymbols.push(SYMBOL_SEQUENCE[remainder]); // Unit2 = remainder (e.g., 1 → ●)
-    newSymbols.push(oldNumberLength > 1 ? units[1].state.currentSymbol : VOID_SYMBOL); // Unit3 = old Unit2
+    const newSymbols = [
+      SYMBOL_SEQUENCE[carryValue], // Unit1 = carry (e.g., 1 → ●)
+      SYMBOL_SEQUENCE[remainder], // Unit2 = remainder (e.g., 0 → ⚙)
+      oldNumberLength > 1 ? units[1].state.currentSymbol : VOID_SYMBOL // Unit3 = old Unit2 or ⊙
+    ];
     
-    // Apply new symbols
     units.forEach((unit, i) => {
       unit.state.currentSymbol = newSymbols[i];
-      unit.state.carry = 0;
-      unit.state.hasCollapsed = false;
+      if (i !== 0) { // Preserve Unit1's carry and hasCollapsed
+        unit.state.carry = 0;
+        unit.state.hasCollapsed = false;
+      }
       unit.state.pushes = [];
       unit.state.pushesLength = 0;
     });
     
-    // Update skeleton metadata
     skeleton.numberLength = newNumberLength;
     skeleton.activeUnitTarget = `u${newNumberLength}`;
     
