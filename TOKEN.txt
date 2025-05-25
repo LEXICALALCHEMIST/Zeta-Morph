@@ -1,0 +1,1313 @@
+ZetaMorph 
+core/ 
+// carryBus.js
+// Located in ZetaMorph/core/
+
+export default class CarryBus {
+  constructor() {
+    this.carryValue = 0;
+    this.carryTarget = null;
+    this.carryHistory = [];
+  }
+
+  registerCarry(value, target) {
+    this.carryValue = value;
+    this.carryTarget = target;
+    this.carryHistory.push({ from: 'unknown', to: target, value });
+    console.log(`CarryBus: Registered CARRY: ${value} to ${target}`); // Debug log
+  }
+
+  flushCarry() {
+    const carry = {
+      carryValue: this.carryValue,
+      carryTarget: this.carryTarget
+    };
+    console.log(`CarryBus: Flushed CARRY: ${this.carryValue} to ${this.carryTarget}`); // Debug log
+    this.carryValue = 0;
+    this.carryTarget = null;
+    return carry;
+  }
+}
+// sacred9.js
+// Located in ZetaMorph/core/
+
+export const SYMBOL_SEQUENCE = [
+    '⚙', '●', '○', '□', '¤', '■', '•', '¥', '◇', '▲', '♤'
+  ];
+  
+  export const VOID_SYMBOL = '⊙';
+  
+  console.log('Exporting VOID_SYMBOL:', VOID_SYMBOL);
+
+/key
+// keyMaker.js
+// Located in ZetaMorph/key/
+
+import { SYMBOL_SEQUENCE, VOID_SYMBOL } from '../core/sacred9.js';
+
+export default class KeyMaker {
+  makeKey(number) {
+    console.log(`Generating key for ${number}`);
+    
+    if (number < 0 || number > 999) {
+      throw new Error('Number must be between 0 and 999');
+    }
+    
+    // Extract digits in order (left-to-right)
+    const digits = number.toString().split('').map(Number);
+    const length = digits.length;
+    
+    // Create key with unit targets
+    const push = [];
+    const view = [];
+    
+    for (let i = 0; i < 3; i++) {
+      const digit = digits[i];
+      const unit = `U${i + 1}`;
+      if (digit !== undefined) {
+        push.push(`${unit}:${digit}`);
+        view.push(SYMBOL_SEQUENCE[digit]);
+      } else {
+        push.push(`${unit}:null`);
+        view.push(VOID_SYMBOL);
+      }
+    }
+    
+    const key = {
+      number,
+      length,
+      push,
+      view
+    };
+    
+    console.log(`KEY:${key.number} LENGTH:${key.length} PUSH[${key.push.join(' ')}] VIEW:${key.view.join('|')}`);
+    return key;
+  }
+}
+// shiftKey.js
+// Located in ZetaMorph/key/
+
+import { SYMBOL_SEQUENCE, VOID_SYMBOL } from '../core/sacred9.js';
+
+export default class ShiftKey {
+  shift(key, targetLength) {
+    console.log(`Shifting key for ${key.number} to targetLength: ${targetLength}`);
+    
+    // Validate targetLength
+    if (targetLength < 1 || targetLength > 3) {
+      throw new Error('targetLength must be between 1 and 3');
+    }
+    
+    // Extract original push and view
+    const oldPush = [...key.push];
+    const oldView = [...key.view];
+    
+    // Parse digits from push
+    const digits = key.push.map(entry => {
+      const [, value] = entry.split(':');
+      return value === 'null' ? null : parseInt(value);
+    });
+    
+    // Shift digits rightward
+    const newDigits = Array(3).fill(null);
+    const shiftAmount = targetLength - key.length;
+    if (shiftAmount >= 0) {
+      for (let i = 0; i < key.length; i++) {
+        newDigits[i + shiftAmount] = digits[i];
+      }
+    } else {
+      // Truncate if targetLength < key.length
+      for (let i = 0; i < targetLength; i++) {
+        newDigits[i] = digits[i + key.length - targetLength];
+      }
+    }
+    
+    // Generate new push and view
+    const newPush = newDigits.map((value, i) => {
+      const unit = `U${i + 1}`;
+      return `${unit}:${value === null ? 'null' : value}`;
+    });
+    const newView = newDigits.map(value => value === null ? VOID_SYMBOL : SYMBOL_SEQUENCE[value]);
+    
+    // Determine new targetUnit
+    let targetUnit = null;
+    for (let i = newDigits.length - 1; i >= 0; i--) {
+      if (newDigits[i] !== null) {
+        targetUnit = `u${i + 1}`;
+        break;
+      }
+    }
+    
+    const newKey = {
+      number: key.number,
+      length: key.length,
+      targetLength,
+      push: newPush,
+      view: newView,
+      targetUnit
+    };
+    
+    console.log(`Shifting key: Old: PUSH[${oldPush.join(' ')}], New: PUSH[${newPush.join(' ')}]`);
+    return newKey;
+  }
+}
+/MorphLogic
+// add.js
+// Located in ZetaMorph/MorphLogic/
+
+import KeyMaker from '../key/keyMaker.js';
+import { SYMBOL_SEQUENCE, VOID_SYMBOL } from '../core/sacred9.js';
+
+export default class Add {
+  constructor(skeleton) {
+    this.skeleton = skeleton;
+    this.keyMaker = new KeyMaker();
+  }
+
+  add(keyNumber, shiftedKey) {
+    console.log(`Applying key for ${keyNumber}`);
+    
+    // Use the shifted key
+    const key = shiftedKey || this.keyMaker.makeKey(keyNumber);
+    
+    // Apply key to skeleton
+    const units = [this.skeleton.unit1, this.skeleton.unit2, this.skeleton.unit3];
+    
+    for (let i = 0; i < key.push.length; i++) {
+      const pushEntry = key.push[i];
+      const [unitName, value] = pushEntry.split(':');
+      const unitIndex = parseInt(unitName.replace('U', '')) - 1;
+      const unit = units[unitIndex];
+      const position = i === 0 ? 'first' : i === 1 ? 'second' : 'third';
+      
+      const currentSymbol = unit.state && unit.state.currentSymbol ? unit.state.currentSymbol : VOID_SYMBOL;
+      
+      if (value !== 'null') {
+        const numValue = parseInt(value);
+        if (numValue > 0) {
+          console.log(`Pushing ${unitName}-${position}: ${numValue}`);
+          unit.push(numValue, this.skeleton.carryBus);
+          if (this.skeleton.carryBus.carryValue > 0) {
+            const { carryValue, carryTarget } = this.skeleton.carryBus.flushCarry();
+            if (carryTarget === 'Unit1' && i > 0) {
+              this.skeleton.unit1.push(carryValue, this.skeleton.carryBus);
+              console.log(`Carry applied to Unit1: ${carryValue}`);
+            } else if (carryTarget === 'Unit2' && i > 1) {
+              this.skeleton.unit2.push(carryValue, this.skeleton.carryBus);
+              console.log(`Carry applied to Unit2: ${carryValue}`);
+            }
+          }
+        } else if (currentSymbol === VOID_SYMBOL) {
+          console.log(`Setting ${unitName}-${position}: 0 (no push)`);
+          unit.state.currentSymbol = SYMBOL_SEQUENCE[0]; // Set to ⚙
+        } else {
+          console.log(`Preserving ${unitName}-${position}: ${currentSymbol} (no push)`);
+        }
+      } else {
+        console.log(`Skipping ${unitName}-${position}: null`);
+      }
+    }
+    
+    // Reset pushesLength
+    units.forEach(unit => {
+      if (unit.state && unit.state.pushes) {
+        unit.state.pushes = [];
+      }
+    });
+    
+    const state = this.skeleton.getState();
+    console.log(`Final Skeleton: <${state.unit1.currentSymbol}${state.unit2.currentSymbol}${state.unit3.currentSymbol}|⊙⊙⊙|⊙⊙⊙>`);
+    return state;
+  }
+}
+import { SYMBOL_SEQUENCE, VOID_SYMBOL } from '../core/sacred9.js';
+
+export default class Expand {
+  expand(skeleton, carryValue, remainder) {
+    console.log(`Expanding skeleton with carry: ${carryValue}, remainder: ${remainder}`);
+    
+    const units = [skeleton.unit1, skeleton.unit2, skeleton.unit3];
+    const oldNumberLength = skeleton.numberLength || 1;
+    const newNumberLength = Math.min(oldNumberLength + 1, 3);
+    
+    const newSymbols = [
+      SYMBOL_SEQUENCE[carryValue], // Unit1 = carry (e.g., 1 → ●)
+      SYMBOL_SEQUENCE[remainder], // Unit2 = remainder (e.g., 0 → ⚙)
+      oldNumberLength > 1 ? units[1].state.currentSymbol : VOID_SYMBOL // Unit3 = old Unit2 or ⊙
+    ];
+    
+    units.forEach((unit, i) => {
+      unit.state.currentSymbol = newSymbols[i];
+      if (i !== 0) { // Preserve Unit1's carry and hasCollapsed
+        unit.state.carry = 0;
+        unit.state.hasCollapsed = false;
+      }
+      unit.state.pushes = [];
+      unit.state.pushesLength = 0;
+    });
+    
+    skeleton.numberLength = newNumberLength;
+    skeleton.activeUnitTarget = `u${newNumberLength}`;
+    
+    const state = skeleton.getState();
+    console.log(`Expanded skeleton: numberLength: ${oldNumberLength} → ${newNumberLength}, activeUnitTarget: u${newNumberLength}`);
+    console.log(`New Skeleton: <${state.unit1.currentSymbol}${state.unit2.currentSymbol}${state.unit3.currentSymbol}|⊙⊙⊙|⊙⊙⊙>`);
+    
+    return state;
+  }
+}
+// setSkeleton.js
+// Located in ZetaMorph/MorphLogic/
+
+import Unit1 from '../skeleton/unit1.js';
+import Unit2 from '../skeleton/unit2.js';
+import Unit3 from '../skeleton/unit3.js';
+import CarryBus from '../core/carryBus.js';
+import { SYMBOL_SEQUENCE } from '../core/sacred9.js';
+
+export default class SetSkeleton {
+  constructor() {
+    this.unit1 = new Unit1();
+    this.unit2 = new Unit2();
+    this.unit3 = new Unit3();
+    this.carryBus = new CarryBus();
+    this.numberLength = 1;
+    this.activeUnitTarget = 'u1';
+    
+    this.unit1.skeleton = this;
+    this.unit2.skeleton = this;
+    this.unit3.skeleton = this;
+  }
+
+  set(number) {
+    console.log(`Setting skeleton for ${number}`);
+    
+    if (number < 0 || number > 999) {
+      throw new Error('Number must be between 0 and 999');
+    }
+    
+    const digits = number.toString().split('').map(Number);
+    this.numberLength = digits.length;
+    this.activeUnitTarget = `u${this.numberLength}`;
+    
+    const units = [this.unit1, this.unit2, this.unit3];
+    
+    for (let i = 0; i < units.length; i++) {
+      const unit = units[i];
+      unit.state.currentSymbol = '⊙';
+      unit.state.carry = 0;
+      unit.state.hasCollapsed = false;
+      unit.state.pushes = [];
+      unit.state.pushesLength = 0;
+      
+      const digit = digits[i]; // Left-to-right
+      if (digit !== undefined) {
+        console.log(`Setting unit${i + 1} to ${digit}`);
+        unit.state.currentSymbol = SYMBOL_SEQUENCE[digit];
+        unit.state.pushes = [];
+        unit.state.pushesLength = 0;
+        console.log(`Set unit${i + 1} to ${digit} (symbol: ${SYMBOL_SEQUENCE[digit]})`);
+      }
+    }
+    
+    const state = this.getState();
+    console.log(`Skeleton: <${state.unit1.currentSymbol}${state.unit2.currentSymbol}${state.unit3.currentSymbol}|⊙⊙⊙|⊙⊙⊙>`);
+    return state;
+  }
+
+  getState() {
+    return {
+      unit1: this.unit1.state,
+      unit2: this.unit2.state,
+      unit3: this.unit3.state,
+      numberLength: this.numberLength,
+      activeUnitTarget: this.activeUnitTarget
+    };
+  }
+}
+// shift.js
+// Located in ZetaMorph/MorphLogic/
+
+import SetSkeleton from './setSkeleton.js';
+import { SYMBOL_SEQUENCE, VOID_SYMBOL } from '../core/sacred9.js';
+
+export default class Shift {
+  constructor() {
+    this.setSkeleton = new SetSkeleton();
+  }
+
+  shift(setNumber, shiftIndex) {
+    console.log(`Shifting skeleton for ${setNumber} by ${shiftIndex} units`);
+    
+    // Set initial skeleton
+    const setState = this.setSkeleton.set(setNumber);
+    const setLength = setNumber.toString().length;
+    console.log(`Set length: ${setLength}`);
+    
+    // Validate shift
+    if (shiftIndex < 0 || shiftIndex > 2) {
+      throw new Error('Shift index must be between 0 and 2');
+    }
+    
+    // Shift skeleton right by shiftIndex units
+    let shiftedState = { ...setState };
+    const units = [
+      { state: setState.unit1, index: 0 },
+      { state: setState.unit2, index: 1 },
+      { state: setState.unit3, index: 2 }
+    ];
+    const newUnits = Array(3).fill().map(() => ({ currentSymbol: SYMBOL_SEQUENCE[0], carry: 0, hasCollapsed: false, pushesLength: 0 })); // Set to ⚙ (0) by default
+    
+    for (let i = 0; i < units.length; i++) {
+      const newIndex = i + shiftIndex;
+      if (newIndex < units.length && units[i].state.currentSymbol !== VOID_SYMBOL) {
+        newUnits[newIndex] = { ...units[i].state }; // Move non-⊙ symbol
+      }
+    }
+    
+    shiftedState = {
+      unit1: newUnits[0],
+      unit2: newUnits[1],
+      unit3: newUnits[2]
+    };
+    
+    // Apply shifted state to skeleton
+    this.setSkeleton.unit1.state.currentSymbol = shiftedState.unit1.currentSymbol;
+    this.setSkeleton.unit2.state.currentSymbol = shiftedState.unit2.currentSymbol;
+    this.setSkeleton.unit3.state.currentSymbol = shiftedState.unit3.currentSymbol;
+    this.setSkeleton.unit1.state.pushes = [];
+    this.setSkeleton.unit2.state.pushes = [];
+    this.setSkeleton.unit3.state.pushes = [];
+    
+    const finalState = this.setSkeleton.getState();
+    console.log(`Shifted Skeleton: <${finalState.unit1.currentSymbol}${finalState.unit2.currentSymbol}${finalState.unit3.currentSymbol}|⊙⊙⊙|⊙⊙⊙>`);
+    return finalState;
+  }
+}
+skeleton/
+// morphSkeleton.js
+// Located in ZetaMorph/skeleton/
+
+// Stub for coordinating Unit, Axis1, Axis2
+export default class MorphSkeleton {
+    constructor() {
+      console.log('MorphSkeleton initialized (stub)'); // Debug log
+    }
+  }
+  // unit1.js
+// Located in ZetaMorph/skeleton/
+
+import { SYMBOL_SEQUENCE } from '../core/sacred9.js';
+import Expand from '../MorphLogic/expand.js';
+
+console.log('unit1.js loaded');
+
+export default class Unit1 {
+  constructor() {
+    this.state = {
+      currentSymbol: '⊙',
+      carry: 0,
+      hasCollapsed: false,
+      pushes: [],
+      pushesLength: 0
+    };
+  }
+
+  push(count, carryBus) {
+    let currentIndex = this.state.currentSymbol && this.state.currentSymbol !== '⊙'
+      ? SYMBOL_SEQUENCE.indexOf(this.state.currentSymbol)
+      : -1;
+    
+    for (let i = 0; i < count; i++) {
+      currentIndex = (currentIndex + 1) % SYMBOL_SEQUENCE.length;
+      this.state.currentSymbol = SYMBOL_SEQUENCE[currentIndex];
+      this.state.pushes.push(this.state.currentSymbol);
+      
+      console.log(
+        `Unit1 Push: SYMBOL: ${this.state.currentSymbol} CARRY: ${this.state.carry} DIRECTION: 1`
+      );
+      
+      if (currentIndex === SYMBOL_SEQUENCE.length - 1) {
+        this.state.carry = 1;
+        this.state.hasCollapsed = true;
+        const remainder = currentIndex % 10; // Fix: Correct remainder for 10 (0 → ⚙)
+        this.state.currentSymbol = SYMBOL_SEQUENCE[remainder];
+        carryBus.registerCarry(1, 'Unit2');
+        console.log(
+          `Unit1 Carry: CARRY: ${this.state.carry} COLLAPSED: ${this.state.hasCollapsed}`
+        );
+        console.log(`CarryBus: Registered CARRY: 1 to Unit2`);
+        console.log(`Remainder set to: ${remainder}`);
+        
+        // Trigger expansion
+        const expand = new Expand();
+        expand.expand(this.skeleton, this.state.carry, remainder);
+        break; // Stop pushing after collapse
+      }
+    }
+    
+    this.state.pushesLength = this.state.pushes.length;
+  }
+
+  getState() {
+    return this.state;
+  }
+}
+// unit2.js
+// Located in ZetaMorph/skeleton/
+
+import { SYMBOL_SEQUENCE, VOID_SYMBOL } from '../core/sacred9.js';
+
+function morphSymbol(current, direction = 1) {
+  if (current === null) return SYMBOL_SEQUENCE[0];
+  const index = SYMBOL_SEQUENCE.indexOf(current);
+  return SYMBOL_SEQUENCE[(index + direction + SYMBOL_SEQUENCE.length) % SYMBOL_SEQUENCE.length];
+}
+
+export default class Unit2 {
+  constructor() {
+    this.state = {
+      label: 'unit2', // Secondary unit (tens)
+      currentSymbol: null,
+      pushes: [],
+      carry: 0,
+      collapsed: false,
+      hasCollapsed: false
+    };
+    this.carryTarget = 'Unit1'; // Carry back to Unit1
+  }
+
+push(times = 1, carryBus) {
+  if (times >= 10) {
+    this.state.collapsed = true;
+    this.state.hasCollapsed = true;
+    this.state.carry = Math.floor(times / 10);
+    this.state.currentSymbol = SYMBOL_SEQUENCE[0];
+    if (carryBus) carryBus.registerCarry(this.state.carry, this.carryTarget);
+    this.state.pushes = [];
+    return;
+  }
+  const direction = times >= 0 ? 1 : -1;
+  const absTimes = Math.abs(times);
+  this.state.currentSymbol = this.state.currentSymbol || SYMBOL_SEQUENCE[0]; // Initialize to ⚙
+  for (let i = 0; i < absTimes; i++) {
+    this.state.pushes.push(direction);
+    this.state.currentSymbol = morphSymbol(this.state.currentSymbol, direction);
+    if (this.state.currentSymbol === SYMBOL_SEQUENCE[10] && direction > 0) {
+      this.state.collapsed = true;
+      this.state.hasCollapsed = true;
+      this.state.carry = 1;
+      this.state.currentSymbol = SYMBOL_SEQUENCE[0];
+      if (carryBus) carryBus.registerCarry(1, this.carryTarget);
+      this.state.pushes = [];
+    }
+  }
+  this.state.pushesLength = this.state.pushes.length; // Update pushesLength
+}
+
+  getState() {
+    return {
+      ...this.state,
+      currentSymbol: this.state.currentSymbol || VOID_SYMBOL
+    };
+  }
+}
+// unit3.js
+// Located in ZetaMorph/skeleton/
+
+import { SYMBOL_SEQUENCE, VOID_SYMBOL } from '../core/sacred9.js';
+
+function morphSymbol(current, direction = 1) {
+  if (current === null) return SYMBOL_SEQUENCE[0];
+  const index = SYMBOL_SEQUENCE.indexOf(current);
+  return SYMBOL_SEQUENCE[(index + direction + SYMBOL_SEQUENCE.length) % SYMBOL_SEQUENCE.length];
+}
+
+export default class Unit3 {
+  constructor() {
+    this.state = {
+      label: 'unit3', // Hundreds unit
+      currentSymbol: null,
+      pushes: [],
+      carry: 0,
+      collapsed: false,
+      hasCollapsed: false
+    };
+    this.carryTarget = 'Unit2'; // Carry to Unit2
+  }
+
+  push(times = 1, carryBus) {
+    if (times >= 10) {
+      console.log(`Unit3 Push: Bypassing ${times} to collapse`);
+      this.state.collapsed = true;
+      this.state.hasCollapsed = true;
+      this.state.carry = Math.floor(times / 10);
+      this.state.currentSymbol = SYMBOL_SEQUENCE[0]; // Reset to ⚙ (0)
+      if (carryBus) {
+        carryBus.registerCarry(this.state.carry, this.carryTarget);
+        console.log(`Unit3 Carry: Registered CARRY: ${this.state.carry} to ${this.carryTarget}`);
+      }
+      this.state.pushes = [];
+      return;
+    }
+    const direction = times >= 0 ? 1 : -1;
+    const absTimes = Math.abs(times);
+    for (let i = 0; i < absTimes; i++) {
+      this.state.pushes.push(direction);
+      this.state.currentSymbol = morphSymbol(this.state.currentSymbol, direction);
+      console.log(`Unit3 Push: SYMBOL: ${this.state.currentSymbol} CARRY: ${this.state.carry} DIRECTION: ${direction}`);
+      if (this.state.currentSymbol === SYMBOL_SEQUENCE[10] && direction > 0) {
+        this.state.collapsed = true;
+        this.state.hasCollapsed = true;
+        this.state.carry = 1;
+        console.log(`Unit3 Carry: CARRY: ${this.state.carry} COLLAPSED: ${this.state.collapsed}`);
+        if (carryBus) {
+          carryBus.registerCarry(1, this.carryTarget);
+          console.log(`Unit3 Carry: Registered CARRY: 1 to ${this.carryTarget}`);
+        }
+        this.state.currentSymbol = SYMBOL_SEQUENCE[0]; // Reset to ⚙ (0)
+        this.state.pushes = [];
+      }
+    }
+  }
+
+  getState() {
+    return {
+      ...this.state,
+      currentSymbol: this.state.currentSymbol || VOID_SYMBOL
+    };
+  }
+}
+
+test/
+// testAdd.js ???
+// Located in ZetaMorph/test/
+
+import SetSkeleton from '../MorphLogic/setSkeleton.js';
+import KeyMaker from '../key/keyMaker.js';
+import ShiftKey from '../key/shiftKey.js';
+import Add from '../MorphLogic/add.js';
+import { SYMBOL_SEQUENCE } from '../core/sacred9.js';
+
+console.log('--- ZLME Addition Test Suite ---');
+
+const tests = [
+  {
+    description: 'Set skeleton to 4 and stack 9 to reach 13',
+    operation: { a: 4, b: 9 },
+    expected: {
+      unit1: { currentSymbol: SYMBOL_SEQUENCE[1], carry: 0, hasCollapsed: false, pushesLength: 0 },
+      unit2: { currentSymbol: SYMBOL_SEQUENCE[3], carry: 1, hasCollapsed: true, pushesLength: 0 },
+      unit3: { currentSymbol: '⊙', carry: 0, hasCollapsed: false, pushesLength: 0 },
+      numberLength: 2,
+      activeUnitTarget: 'u2'
+    }
+  },
+  {
+    description: 'Set skeleton to 14 and stack 9 to reach 23',
+    operation: { a: 14, b: 9 },
+    expected: {
+      unit1: { currentSymbol: SYMBOL_SEQUENCE[2], carry: 0, hasCollapsed: false, pushesLength: 0 },
+      unit2: { currentSymbol: SYMBOL_SEQUENCE[3], carry: 1, hasCollapsed: true, pushesLength: 0 },
+      unit3: { currentSymbol: '⊙', carry: 0, hasCollapsed: false, pushesLength: 0 },
+      numberLength: 2,
+      activeUnitTarget: 'u2'
+    }
+  }
+];
+
+tests.forEach((test, index) => {
+  console.log(`Test Case ${index + 1}: ${test.description}`);
+  
+  try {
+    console.log('Starting skeleton set');
+    
+    const setSkeleton = new SetSkeleton();
+    const keyMaker = new KeyMaker();
+    const shiftKey = new ShiftKey();
+    const add = new Add(setSkeleton);
+    
+    // Set initial skeleton
+    const setState = setSkeleton.set(test.operation.a);
+    const setLength = test.operation.a.toString().length;
+    let state = setState;
+    let skeleton = `<${state.unit1.currentSymbol}${state.unit2.currentSymbol}${state.unit3.currentSymbol}|⊙⊙⊙|⊙⊙⊙>`;
+    console.log(`Initial Skeleton: ${skeleton}`);
+    
+    // Generate and shift key
+    const originalKey = keyMaker.makeKey(test.operation.b);
+    const shiftedKey = shiftKey.shift(originalKey, setLength);
+    
+    // Apply shifted key
+    state = add.add(test.operation.b, shiftedKey);
+    
+    // Log final skeleton
+    skeleton = `<${state.unit1.currentSymbol}${state.unit2.currentSymbol}${state.unit3.currentSymbol}|⊙⊙⊙|⊙⊙⊙>`;
+    console.log(`Final Skeleton: ${skeleton}`);
+    
+    console.log('Result:', {
+      unit1: {
+        currentSymbol: state.unit1.currentSymbol,
+        carry: state.unit1.carry,
+        hasCollapsed: state.unit1.hasCollapsed,
+        pushesLength: state.unit1.pushesLength
+      },
+      unit2: {
+        currentSymbol: state.unit2.currentSymbol,
+        carry: state.unit2.carry,
+        hasCollapsed: state.unit2.hasCollapsed,
+        pushesLength: state.unit2.pushesLength
+      },
+      unit3: {
+        currentSymbol: state.unit3.currentSymbol,
+        carry: state.unit3.carry,
+        hasCollapsed: state.unit3.hasCollapsed,
+        pushesLength: state.unit3.pushesLength
+      },
+      numberLength: state.numberLength,
+      activeUnitTarget: state.activeUnitTarget
+    });
+    console.log('Expected:', test.expected);
+    
+    const passed = 
+      state.unit1.currentSymbol === test.expected.unit1.currentSymbol &&
+      state.unit1.carry === test.expected.unit1.carry &&
+      state.unit1.hasCollapsed === test.expected.unit1.hasCollapsed &&
+      state.unit1.pushesLength === test.expected.unit1.pushesLength &&
+      state.unit2.currentSymbol === test.expected.unit2.currentSymbol &&
+      state.unit2.carry === test.expected.unit2.carry &&
+      state.unit2.hasCollapsed === test.expected.unit2.hasCollapsed &&
+      state.unit2.pushesLength === test.expected.unit2.pushesLength &&
+      state.unit3.currentSymbol === test.expected.unit3.currentSymbol &&
+      state.unit3.carry === test.expected.unit3.carry &&
+      state.unit3.hasCollapsed === test.expected.unit3.hasCollapsed &&
+      state.unit3.pushesLength === test.expected.unit3.pushesLength &&
+      state.numberLength === test.expected.numberLength &&
+      state.activeUnitTarget === test.expected.activeUnitTarget;
+    
+    console.log(`Result: ${passed ? 'PASS' : 'FAIL'}`);
+    if (!passed) {
+      console.log(`Mismatch: Got ${JSON.stringify({
+        unit1: {
+          currentSymbol: state.unit1.currentSymbol,
+          carry: state.unit1.carry,
+          hasCollapsed: state.unit1.hasCollapsed,
+          pushesLength: state.unit1.pushesLength
+        },
+        unit2: {
+          currentSymbol: state.unit2.currentSymbol,
+          carry: state.unit2.carry,
+          hasCollapsed: state.unit2.hasCollapsed,
+          pushesLength: state.unit2.pushesLength
+        },
+        unit3: {
+          currentSymbol: state.unit3.currentSymbol,
+          carry: state.unit3.carry,
+          hasCollapsed: state.unit3.hasCollapsed,
+          pushesLength: state.unit3.pushesLength
+        },
+        numberLength: state.numberLength,
+        activeUnitTarget: state.activeUnitTarget
+      })}, Expected: ${JSON.stringify(test.expected)}`);
+    }
+  } catch (error) {
+    console.error(`Test Case ${index + 1} failed:`, error.message);
+  }
+  console.log('---');
+});
+// testExpand.js PASS!
+// Located in ZetaMorph/test/
+
+import SetSkeleton from '../MorphLogic/setSkeleton.js';
+import KeyMaker from '../key/keyMaker.js';
+import ShiftKey from '../key/shiftKey.js';
+import Add from '../MorphLogic/add.js';
+import { SYMBOL_SEQUENCE } from '../core/sacred9.js';
+
+console.log('--- ZLME Expand Test Suite ---');
+
+const tests = [
+  {
+    description: 'Set skeleton to 99 and stack 1 to reach 100',
+    operation: { a: 99, b: 1 }
+  }
+];
+
+tests.forEach((test, index) => {
+  console.log(`Test Case ${index + 1}: ${test.description}`);
+  
+  try {
+    // Define expected inside test case with hardcoded ⊙
+    const expected = {
+      unit1: { currentSymbol: SYMBOL_SEQUENCE[1], carry: 0, hasCollapsed: false, pushesLength: 0 },
+      unit2: { currentSymbol: SYMBOL_SEQUENCE[0], carry: 0, hasCollapsed: false, pushesLength: 0 },
+      unit3: { currentSymbol: SYMBOL_SEQUENCE[0], carry: 0, hasCollapsed: false, pushesLength: 0 },
+      numberLength: 3,
+      activeUnitTarget: 'u3'
+    };
+    
+    console.log('Starting skeleton set');
+    
+    const setSkeleton = new SetSkeleton();
+    const keyMaker = new KeyMaker();
+    const shiftKey = new ShiftKey();
+    const add = new Add(setSkeleton);
+    
+    // Set initial skeleton
+    const setState = setSkeleton.set(test.operation.a);
+    const setLength = test.operation.a.toString().length;
+    let state = setState;
+    let skeleton = `<${state.unit1.currentSymbol}${state.unit2.currentSymbol}${state.unit3.currentSymbol}|⊙⊙⊙|⊙⊙⊙>`;
+    console.log(`Initial Skeleton: ${skeleton}`);
+    
+    // Generate and shift key
+    const originalKey = keyMaker.makeKey(test.operation.b);
+    const shiftedKey = shiftKey.shift(originalKey, setLength);
+    
+    // Apply shifted key
+    state = add.add(test.operation.b, shiftedKey);
+    
+    // Log final skeleton
+    skeleton = `<${state.unit1.currentSymbol}${state.unit2.currentSymbol}${state.unit3.currentSymbol}|⊙⊙⊙|⊙⊙⊙>`;
+    console.log(`Final Skeleton: ${skeleton}`);
+    
+    console.log('Result:', {
+      unit1: {
+        currentSymbol: state.unit1.currentSymbol,
+        carry: state.unit1.carry,
+        hasCollapsed: state.unit1.hasCollapsed,
+        pushesLength: state.unit1.pushesLength
+      },
+      unit2: {
+        currentSymbol: state.unit2.currentSymbol,
+        carry: state.unit2.carry,
+        hasCollapsed: state.unit2.hasCollapsed,
+        pushesLength: state.unit2.pushesLength
+      },
+      unit3: {
+        currentSymbol: state.unit3.currentSymbol,
+        carry: state.unit3.carry,
+        hasCollapsed: state.unit3.hasCollapsed,
+        pushesLength: state.unit3.pushesLength
+      },
+      numberLength: state.numberLength,
+      activeUnitTarget: state.activeUnitTarget
+    });
+    console.log('Expected:', expected);
+    
+    const passed = 
+      state.unit1.currentSymbol === expected.unit1.currentSymbol &&
+      state.unit1.carry === expected.unit1.carry &&
+      state.unit1.hasCollapsed === expected.unit1.hasCollapsed &&
+      state.unit1.pushesLength === expected.unit1.pushesLength &&
+      state.unit2.currentSymbol === expected.unit2.currentSymbol &&
+      state.unit2.carry === expected.unit2.carry &&
+      state.unit2.hasCollapsed === expected.unit2.hasCollapsed &&
+      state.unit2.pushesLength === expected.unit2.pushesLength &&
+      state.unit3.currentSymbol === expected.unit3.currentSymbol &&
+      state.unit3.carry === expected.unit3.carry &&
+      state.unit3.hasCollapsed === expected.unit3.hasCollapsed &&
+      state.unit3.pushesLength === expected.unit3.pushesLength &&
+      state.numberLength === expected.numberLength &&
+      state.activeUnitTarget === expected.activeUnitTarget;
+    
+    console.log(`Result: ${passed ? 'PASS' : 'FAIL'}`);
+    if (!passed) {
+      console.log(`Mismatch: Got ${JSON.stringify({
+        unit1: {
+          currentSymbol: state.unit1.currentSymbol,
+          carry: state.unit1.carry,
+          hasCollapsed: state.unit1.hasCollapsed,
+          pushesLength: state.unit1.pushesLength
+        },
+        unit2: {
+          currentSymbol: state.unit2.currentSymbol,
+          carry: state.unit2.carry,
+          hasCollapsed: state.unit2.hasCollapsed,
+          pushesLength: state.unit2.pushesLength
+        },
+        unit3: {
+          currentSymbol: state.unit3.currentSymbol,
+          carry: state.unit3.carry,
+          hasCollapsed: state.unit3.hasCollapsed,
+          pushesLength: state.unit3.pushesLength
+        },
+        numberLength: state.numberLength,
+        activeUnitTarget: state.activeUnitTarget
+      })}, Expected: ${JSON.stringify(expected)}`);
+    }
+  } catch (error) {
+    console.error(`Test Case ${index + 1} failed:`, error.message);
+  }
+  console.log('---');
+});
+// testKey.js PASS!
+// Located in ZetaMorph/test/
+
+import KeyMaker from '../key/keyMaker.js';
+import { SYMBOL_SEQUENCE, VOID_SYMBOL } from '../core/sacred9.js';
+
+console.log('--- ZLME Key Maker Test Suite ---');
+
+const tests = [
+  {
+    description: 'Generate key for 100',
+    number: 100,
+    expected: {
+      number: 100,
+      length: 3,
+      push: ['U1:1', 'U2:0', 'U3:0'],
+      view: [SYMBOL_SEQUENCE[1], SYMBOL_SEQUENCE[0], SYMBOL_SEQUENCE[0]]
+    }
+  }
+];
+
+tests.forEach((test, index) => {
+  console.log(`Test Case ${index + 1}: ${test.description}`);
+  
+  try {
+    const keyMaker = new KeyMaker();
+    const key = keyMaker.makeKey(test.number);
+    
+    console.log(`Result: KEY:${key.number} LENGTH:${key.length} PUSH[${key.push.join(' ')}] VIEW:${key.view.join('|')}`);
+    
+    const passed = 
+      key.number === test.expected.number &&
+      key.length === test.expected.length &&
+      key.push.every((p, i) => p === test.expected.push[i]) &&
+      key.view.every((v, i) => v === test.expected.view[i]);
+    
+    console.log(`Result: ${passed ? 'PASS' : 'FAIL'}`);
+    if (!passed) {
+      console.log(`Mismatch: Got ${JSON.stringify({
+        number: key.number,
+        length: key.length,
+        push: key.push,
+        view: key.view
+      })}, Expected: ${JSON.stringify(test.expected)}`);
+    }
+  } catch (error) {
+    console.error(`Test Case ${index + 1} failed:`, error.message);
+  }
+  console.log('---');
+});
+// testSet.js PASS!
+// Located in ZetaMorph/test/
+
+import SetSkeleton from '../MorphLogic/setSkeleton.js';
+import { SYMBOL_SEQUENCE } from '../core/sacred9.js';
+
+console.log('--- ZLME Set Test Suite ---');
+
+const tests = [
+  {
+    description: 'Set skeleton to 303',
+    number: 303,
+    expected: {
+      unit1: { currentSymbol: SYMBOL_SEQUENCE[3], carry: 0, hasCollapsed: false, pushesLength: 0 },
+      unit2: { currentSymbol: SYMBOL_SEQUENCE[0], carry: 0, hasCollapsed: false, pushesLength: 0 },
+      unit3: { currentSymbol: SYMBOL_SEQUENCE[3], carry: 0, hasCollapsed: false, pushesLength: 0 },
+      numberLength: 3,
+      activeUnitTarget: 'u3'
+    }
+  },
+  {
+    description: 'Set skeleton to 303003',
+    number: 303003,
+    expected: {
+      unit1: { currentSymbol: SYMBOL_SEQUENCE[3], carry: 0, hasCollapsed: false, pushesLength: 0 },
+      unit2: { currentSymbol: SYMBOL_SEQUENCE[0], carry: 0, hasCollapsed: false, pushesLength: 0 },
+      unit3: { currentSymbol: SYMBOL_SEQUENCE[3], carry: 0, hasCollapsed: false, pushesLength: 0 },
+      numberLength: 3,
+      activeUnitTarget: 'u3'
+    }
+  },
+  {
+    description: 'Set skeleton to 333000333',
+    number: 333000333,
+    expected: {
+      unit1: { currentSymbol: SYMBOL_SEQUENCE[3], carry: 0, hasCollapsed: false, pushesLength: 0 },
+      unit2: { currentSymbol: SYMBOL_SEQUENCE[3], carry: 0, hasCollapsed: false, pushesLength: 0 },
+      unit3: { currentSymbol: SYMBOL_SEQUENCE[3], carry: 0, hasCollapsed: false, pushesLength: 0 },
+      numberLength: 3,
+      activeUnitTarget: 'u3'
+    }
+  }
+];
+
+console.log('Test suite initialized, running tests...');
+
+tests.forEach((test, index) => {
+  console.log(`Test Case ${index + 1}: ${test.description}`);
+  
+  try {
+    console.log('Starting skeleton set');
+    
+    const setSkeleton = new SetSkeleton();
+    
+    // Set skeleton
+    const state = setSkeleton.set(test.number);
+    
+    // Log final skeleton
+    const skeleton = `<${state.unit1.currentSymbol}${state.unit2.currentSymbol}${state.unit3.currentSymbol}|⊙⊙⊙|⊙⊙⊙>`;
+    console.log(`Final Skeleton: ${skeleton}`);
+    
+    console.log('Result:', {
+      unit1: {
+        currentSymbol: state.unit1.currentSymbol,
+        carry: state.unit1.carry,
+        hasCollapsed: state.unit1.hasCollapsed,
+        pushesLength: state.unit1.pushesLength
+      },
+      unit2: {
+        currentSymbol: state.unit2.currentSymbol,
+        carry: state.unit2.carry,
+        hasCollapsed: state.unit2.hasCollapsed,
+        pushesLength: state.unit2.pushesLength
+      },
+      unit3: {
+        currentSymbol: state.unit3.currentSymbol,
+        carry: state.unit3.carry,
+        hasCollapsed: state.unit3.hasCollapsed,
+        pushesLength: state.unit3.pushesLength
+      },
+      numberLength: state.numberLength,
+      activeUnitTarget: state.activeUnitTarget
+    });
+    console.log('Expected:', test.expected);
+    
+    const passed = 
+      state.unit1.currentSymbol === test.expected.unit1.currentSymbol &&
+      state.unit1.carry === test.expected.unit1.carry &&
+      state.unit1.hasCollapsed === test.expected.unit1.hasCollapsed &&
+      state.unit1.pushesLength === test.expected.unit1.pushesLength &&
+      state.unit2.currentSymbol === test.expected.unit2.currentSymbol &&
+      state.unit2.carry === test.expected.unit2.carry &&
+      state.unit2.hasCollapsed === test.expected.unit2.hasCollapsed &&
+      state.unit2.pushesLength === test.expected.unit2.pushesLength &&
+      state.unit3.currentSymbol === test.expected.unit3.currentSymbol &&
+      state.unit3.carry === test.expected.unit3.carry &&
+      state.unit3.hasCollapsed === test.expected.unit3.hasCollapsed &&
+      state.unit3.pushesLength === test.expected.unit3.pushesLength &&
+      state.numberLength === test.expected.numberLength &&
+      state.activeUnitTarget === test.expected.activeUnitTarget;
+    
+    console.log(`Result: ${passed ? 'PASS' : 'FAIL'}`);
+    if (!passed) {
+      console.log(`Mismatch: Got ${JSON.stringify({
+        unit1: { currentSymbol: state.unit1.currentSymbol, carry: state.unit1.carry, hasCollapsed: state.unit1.hasCollapsed, pushesLength: state.unit1.pushesLength },
+        unit2: { currentSymbol: state.unit2.currentSymbol, carry: state.unit2.carry, hasCollapsed: state.unit2.hasCollapsed, pushesLength: state.unit2.pushesLength },
+        unit3: { currentSymbol: state.unit3.currentSymbol, carry: state.unit3.carry, hasCollapsed: state.unit3.hasCollapsed, pushesLength: state.unit3.pushesLength },
+        numberLength: state.numberLength,
+        activeUnitTarget: state.activeUnitTarget
+      })}, Expected: ${JSON.stringify(test.expected)}`);
+    }
+  } catch (error) {
+    console.error(`Test Case ${index + 1} failed:`, error.message);
+  }
+  console.log('---');
+});
+// testShift.js PASS!
+// Located in ZetaMorph/test/
+
+import Shift from '../MorphLogic/shift.js';
+import { SYMBOL_SEQUENCE, VOID_SYMBOL } from '../core/sacred9.js';
+
+console.log('--- ZLME Shift Test Suite ---');
+
+const tests = [
+  {
+    description: 'Shift 1 by 1 unit',
+    operation: { setNumber: 1, shiftIndex: 1 },
+    expected: {
+      unit1: { currentSymbol: SYMBOL_SEQUENCE[0], carry: 0, hasCollapsed: false, pushesLength: 0 }, // ⚙
+      unit2: { currentSymbol: SYMBOL_SEQUENCE[1], carry: 0, hasCollapsed: false, pushesLength: 0 }, // ●
+      unit3: { currentSymbol: VOID_SYMBOL, carry: 0, hasCollapsed: false, pushesLength: 0 } // ⊙
+    }
+  },
+  {
+    description: 'Shift 1 by 2 units',
+    operation: { setNumber: 1, shiftIndex: 2 },
+    expected: {
+      unit1: { currentSymbol: SYMBOL_SEQUENCE[0], carry: 0, hasCollapsed: false, pushesLength: 0 }, // ⚙
+      unit2: { currentSymbol: SYMBOL_SEQUENCE[0], carry: 0, hasCollapsed: false, pushesLength: 0 }, // ⚙
+      unit3: { currentSymbol: SYMBOL_SEQUENCE[1], carry: 0, hasCollapsed: false, pushesLength: 0 } // ●
+    }
+  }
+];
+
+tests.forEach((test, index) => {
+  console.log(`Test Case ${index + 1}: ${test.description}`);
+  
+  try {
+    const shift = new Shift();
+    const state = shift.shift(test.operation.setNumber, test.operation.shiftIndex);
+    
+    const skeleton = `<${state.unit1.currentSymbol}${state.unit2.currentSymbol}${state.unit3.currentSymbol}|⊙⊙⊙|⊙⊙⊙>`;
+    console.log(`Final Skeleton: ${skeleton}`);
+    
+    console.log('Result:', {
+      unit1: {
+        currentSymbol: state.unit1.currentSymbol,
+        carry: state.unit1.carry,
+        hasCollapsed: state.unit1.hasCollapsed,
+        pushesLength: state.unit1.pushesLength
+      },
+      unit2: {
+        currentSymbol: state.unit2.currentSymbol,
+        carry: state.unit2.carry,
+        hasCollapsed: state.unit2.hasCollapsed,
+        pushesLength: state.unit2.pushesLength
+      },
+      unit3: {
+        currentSymbol: state.unit3.currentSymbol,
+        carry: state.unit3.carry,
+        hasCollapsed: state.unit3.hasCollapsed,
+        pushesLength: state.unit3.pushesLength
+      }
+    });
+    console.log('Expected:', test.expected);
+    
+    const passed = 
+      state.unit1.currentSymbol === test.expected.unit1.currentSymbol &&
+      state.unit1.carry === test.expected.unit1.carry &&
+      state.unit1.hasCollapsed === test.expected.unit1.hasCollapsed &&
+      state.unit1.pushesLength === test.expected.unit1.pushesLength &&
+      state.unit2.currentSymbol === test.expected.unit2.currentSymbol &&
+      state.unit2.carry === test.expected.unit2.carry &&
+      state.unit2.hasCollapsed === test.expected.unit2.hasCollapsed &&
+      state.unit2.pushesLength === test.expected.unit2.pushesLength &&
+      state.unit3.currentSymbol === test.expected.unit3.currentSymbol &&
+      state.unit3.carry === test.expected.unit3.carry &&
+      state.unit3.hasCollapsed === test.expected.unit3.hasCollapsed &&
+      state.unit3.pushesLength === test.expected.unit3.pushesLength;
+    
+    console.log(`Result: ${passed ? 'PASS' : 'FAIL'}`);
+    if (!passed) {
+      console.log(`Mismatch: Got ${JSON.stringify({
+        unit1: {
+          currentSymbol: state.unit1.currentSymbol,
+          carry: state.unit1.carry,
+          hasCollapsed: state.unit1.hasCollapsed,
+          pushesLength: state.unit1.pushesLength
+        },
+        unit2: {
+          currentSymbol: state.unit2.currentSymbol,
+          carry: state.unit2.carry,
+          hasCollapsed: state.unit2.hasCollapsed,
+          pushesLength: state.unit2.pushesLength
+        },
+        unit3: {
+          currentSymbol: state.unit3.currentSymbol,
+          carry: state.unit3.carry,
+          hasCollapsed: state.unit3.hasCollapsed,
+          pushesLength: state.unit3.pushesLength
+        }
+      })}, Expected: ${JSON.stringify(test.expected)}`);
+    }
+  } catch (error) {
+    console.error(`Test Case ${index + 1} failed:`, error.message);
+  }
+  console.log('---');
+});
+// testShiftKey.js
+// Located in ZetaMorph/test/
+
+import KeyMaker from '../key/keyMaker.js';
+import ShiftKey from '../key/shiftKey.js';
+import { SYMBOL_SEQUENCE, VOID_SYMBOL } from '../core/sacred9.js';
+
+console.log('--- ZLME Shift Key Test Suite ---');
+
+const tests = [
+  {
+    description: 'Shift key 19 for targetLength 3',
+    number: 19,
+    targetLength: 3,
+    expected: {
+      number: 19,
+      length: 2,
+      targetLength: 3,
+      push: ['U1:null', 'U2:1', 'U3:9'],
+      view: [VOID_SYMBOL, SYMBOL_SEQUENCE[1], SYMBOL_SEQUENCE[9]],
+      targetUnit: 'u3'
+    }
+  },
+  {
+    description: 'Shift key 19 for targetLength 2',
+    number: 19,
+    targetLength: 2,
+    expected: {
+      number: 19,
+      length: 2,
+      targetLength: 2,
+      push: ['U1:1', 'U2:9', 'U3:null'],
+      view: [SYMBOL_SEQUENCE[1], SYMBOL_SEQUENCE[9], VOID_SYMBOL],
+      targetUnit: 'u2'
+    }
+  },
+  {
+    description: 'Shift key 9 for targetLength 3',
+    number: 9,
+    targetLength: 3,
+    expected: {
+      number: 9,
+      length: 1,
+      targetLength: 3,
+      push: ['U1:null', 'U2:null', 'U3:9'],
+      view: [VOID_SYMBOL, VOID_SYMBOL, SYMBOL_SEQUENCE[9]],
+      targetUnit: 'u3'
+    }
+  }
+];
+
+tests.forEach((test, index) => {
+  console.log(`Test Case ${index + 1}: ${test.description}`);
+  
+  try {
+    const keyMaker = new KeyMaker();
+    const shiftKey = new ShiftKey();
+    
+    // Generate original key
+    const originalKey = keyMaker.makeKey(test.number);
+    
+    // Shift key
+    const shiftedKey = shiftKey.shift(originalKey, test.targetLength);
+    
+    console.log(`Result: KEY:${shiftedKey.number} LENGTH:${shiftedKey.length} TARGET_LENGTH:${shiftedKey.targetLength} PUSH[${shiftedKey.push.join(' ')}] VIEW:${shiftedKey.view.join('|')}`);
+    
+    const passed = 
+      shiftedKey.number === test.expected.number &&
+      shiftedKey.length === test.expected.length &&
+      shiftedKey.targetLength === test.expected.targetLength &&
+      shiftedKey.push.every((p, i) => p === test.expected.push[i]) &&
+      shiftedKey.view.every((v, i) => v === test.expected.view[i]) &&
+      shiftedKey.targetUnit === test.expected.targetUnit;
+    
+    console.log(`Result: ${passed ? 'PASS' : 'FAIL'}`);
+    if (!passed) {
+      console.log(`Mismatch: Got ${JSON.stringify({
+        number: shiftedKey.number,
+        length: shiftedKey.length,
+        targetLength: shiftedKey.targetLength,
+        push: shiftedKey.push,
+        view: shiftedKey.view,
+        targetUnit: shiftedKey.targetUnit
+      })}, Expected: ${JSON.stringify(test.expected)}`);
+    }
+  } catch (error) {
+    console.error(`Test Case ${index + 1} failed:`, error.message);
+  }
+  console.log('---');
+});
+MOST RECENT PASS 
+import Unit1 from '../skeleton/unit1.js';
+import Unit2 from '../skeleton/unit2.js';
+import Unit3 from '../skeleton/unit3.js';
+import CarryBus from '../core/carryBus.js';
+import SetSkeleton from '../MorphLogic/setSkeleton.js';
+import KeyMaker from '../key/keyMaker.js';
+import ShiftKey from '../key/shiftKey.js';
+import Add from '../MorphLogic/add.js';
+import { SYMBOL_SEQUENCE, VOID_SYMBOL } from '../core/sacred9.js';
+
+console.log('--- ZLME Unit Carry Test Suite ---');
+
+const tests = [
+  {
+    description: 'Set skeleton to 100 and add 11 to get 111',
+    setup: { number: 100 },
+    action: { number: 11 },
+    expected: {
+      unit1: { currentSymbol: SYMBOL_SEQUENCE[1], carry: 0, hasCollapsed: false, pushesLength: 0 },
+      unit2: { currentSymbol: SYMBOL_SEQUENCE[1], carry: 0, hasCollapsed: false, pushesLength: 1 },
+      unit3: { currentSymbol: SYMBOL_SEQUENCE[1], carry: 0, hasCollapsed: false, pushesLength: 1 },
+      numberLength: 3,
+      activeUnitTarget: 'u3'
+    }
+  }
+];
+
+tests.forEach((test, index) => {
+  console.log(`Test Case ${index + 1}: ${test.description}`);
+  try {
+    const setSkeleton = new SetSkeleton();
+    const keyMaker = new KeyMaker();
+    const shiftKey = new ShiftKey();
+    const add = new Add(setSkeleton);
+
+    // Set initial skeleton
+    setSkeleton.set(test.setup.number);
+    let state = setSkeleton.getState();
+    console.log(`Initial Skeleton: <${state.unit1.currentSymbol}${state.unit2.currentSymbol}${state.unit3.currentSymbol}|⊙⊙⊙|⊙⊙⊙>`);
+
+    // Decompose and apply second number
+    const key = keyMaker.makeKey(test.action.number);
+    const shiftedKey = shiftKey.shift(key, state.numberLength);
+    state = add.add(test.action.number, shiftedKey);
+
+    // Log final state
+    const skeleton = `<${state.unit1.currentSymbol}${state.unit2.currentSymbol}${state.unit3.currentSymbol}|⊙⊙⊙|⊙⊙⊙>`;
+    console.log(`Final Skeleton: ${skeleton}`);
+    console.log('Result:', {
+      unit1: { currentSymbol: state.unit1.currentSymbol, carry: state.unit1.carry, hasCollapsed: state.unit1.hasCollapsed, pushesLength: state.unit1.pushesLength },
+      unit2: { currentSymbol: state.unit2.currentSymbol, carry: state.unit2.carry, hasCollapsed: state.unit2.hasCollapsed, pushesLength: state.unit2.pushesLength },
+      unit3: { currentSymbol: state.unit3.currentSymbol, carry: state.unit3.carry, hasCollapsed: state.unit3.hasCollapsed, pushesLength: state.unit3.pushesLength },
+      numberLength: state.numberLength,
+      activeUnitTarget: state.activeUnitTarget
+    });
+    console.log('Expected:', test.expected);
+
+    const passed = 
+      state.unit1.currentSymbol === test.expected.unit1.currentSymbol &&
+      state.unit1.carry === test.expected.unit1.carry &&
+      state.unit1.hasCollapsed === test.expected.unit1.hasCollapsed &&
+      state.unit1.pushesLength === test.expected.unit1.pushesLength &&
+      state.unit2.currentSymbol === test.expected.unit2.currentSymbol &&
+      state.unit2.carry === test.expected.unit2.carry &&
+      state.unit2.hasCollapsed === test.expected.unit2.hasCollapsed &&
+      state.unit2.pushesLength === test.expected.unit2.pushesLength &&
+      state.unit3.currentSymbol === test.expected.unit3.currentSymbol &&
+      state.unit3.carry === test.expected.unit3.carry &&
+      state.unit3.hasCollapsed === test.expected.unit3.hasCollapsed &&
+      state.unit3.pushesLength === test.expected.unit3.pushesLength &&
+      state.numberLength === test.expected.numberLength &&
+      state.activeUnitTarget === test.expected.activeUnitTarget;
+
+    console.log(`Result: ${passed ? 'PASS' : 'FAIL'}`);
+    if (!passed) {
+      console.log(`Mismatch: Got ${JSON.stringify({
+        unit1: { currentSymbol: state.unit1.currentSymbol, carry: state.unit1.carry, hasCollapsed: state.unit1.hasCollapsed, pushesLength: state.unit1.pushesLength },
+        unit2: { currentSymbol: state.unit2.currentSymbol, carry: state.unit2.carry, hasCollapsed: state.unit2.hasCollapsed, pushesLength: state.unit2.pushesLength },
+        unit3: { currentSymbol: state.unit3.currentSymbol, carry: state.unit3.carry, hasCollapsed: state.unit3.hasCollapsed, pushesLength: state.unit3.pushesLength },
+        numberLength: state.numberLength,
+        activeUnitTarget: state.activeUnitTarget
+      })}, Expected: ${JSON.stringify(test.expected)}`);
+    }
+  } catch (error) {
+    console.error(`Test Case ${index + 1} failed:`, error.message);
+  }
+  console.log('---');
+});
+
+
+NOTE Zeta 
+Morph is a 0 logic GPU bypass math engine using Skeltons viod mini doms to users device perfoming math trhough symbolic'
+recursion of state. using sequnces and morph logic to align skeleton shape to intent of reuqest. the shape of math 
+not wieght. math without math but geometrical alignment. a skelon is SET the a key ios made that deomposes the number to assigne number lengthand
+unit push locations. when 9 is eceeded there is a collpase expand carry system mimicing paper math. 
+
+This is Grok Chat 2 : Last succesfull test was testUniyCarry.js were are at the point of makeing the skelton bigger then to be able to chain new sections on to the skeletonu
+if the number exceeds 999999999 , it may make more snese to set the limit to 1 trillion from the start and call it 
+a soft cap for LSD even thouhg Zeta Morph can essiently work with much larger numbers, instead of creating a failable logic of chAINING LARGER numbers
+for the sake of Nuerom Protocol and LSD crypto im using zeta engine to show the world speed and security never seen before. 
+im using crypto to show the power of zeta morph so since the speficic domain of finaince doesnt reuqer more then lets say 999 TRILLION units 
+weell ust make the standard skeleton for this application unit 1-12 111,111,111,111,111,111 . 
+
+for grok : a better example of the power of this type of new computing turns 5g internet into 50g, where essenatialy
+teleporting data using quantum entaglment theroy of decpomposing numbers into there unit form , beaming a push5 1kb text to 
+the other device... locally the morpph logic gets the request and morphs the skelton with composed morph sequence.
+post logic computing by symbolic recurion of mathmatical shape. all done on state no gpu standard node loop. 
+now imagine if i made a skeleton that could hold an enttire mathmatical alignment for a voice message or song
+break down the song to mathmatical format, compose a morph command, send to uers device use state to rebiuild the skelton.
+tranpsortin media in kbs of data instantly.
