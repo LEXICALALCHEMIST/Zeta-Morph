@@ -5,7 +5,7 @@ import SetSkeleton from '../MorphLogic/setSkeleton.js';
 import KeyMaker from '../key/keyMaker.js';
 import ShiftKey from '../key/shiftKey.js';
 import Add from '../MorphLogic/add.js';
-import { SYMBOL_SEQUENCE, VOID_SYMBOL } from '../core/sacred9.js';
+import { SYMBOL_SEQUENCE } from '../core/sacred9.js';
 
 console.log('--- ZLME Addition Test Suite ---');
 
@@ -15,8 +15,10 @@ const tests = [
     operation: { a: 4, b: 9 },
     expected: {
       unit1: { currentSymbol: SYMBOL_SEQUENCE[1], carry: 0, hasCollapsed: false, pushesLength: 0 },
-      unit2: { currentSymbol: SYMBOL_SEQUENCE[3], carry: 0, hasCollapsed: false, pushesLength: 0 },
-      unit3: { currentSymbol: VOID_SYMBOL, carry: 0, hasCollapsed: false, pushesLength: 0 }
+      unit2: { currentSymbol: SYMBOL_SEQUENCE[3], carry: 1, hasCollapsed: true, pushesLength: 0 },
+      unit3: { currentSymbol: '⊙', carry: 0, hasCollapsed: false, pushesLength: 0 },
+      numberLength: 2,
+      activeUnitTarget: 'u2'
     }
   },
   {
@@ -24,8 +26,10 @@ const tests = [
     operation: { a: 14, b: 9 },
     expected: {
       unit1: { currentSymbol: SYMBOL_SEQUENCE[2], carry: 0, hasCollapsed: false, pushesLength: 0 },
-      unit2: { currentSymbol: SYMBOL_SEQUENCE[3], carry: 0, hasCollapsed: false, pushesLength: 0 },
-      unit3: { currentSymbol: VOID_SYMBOL, carry: 0, hasCollapsed: false, pushesLength: 0 }
+      unit2: { currentSymbol: SYMBOL_SEQUENCE[3], carry: 1, hasCollapsed: true, pushesLength: 0 },
+      unit3: { currentSymbol: '⊙', carry: 0, hasCollapsed: false, pushesLength: 0 },
+      numberLength: 2,
+      activeUnitTarget: 'u2'
     }
   }
 ];
@@ -34,6 +38,8 @@ tests.forEach((test, index) => {
   console.log(`Test Case ${index + 1}: ${test.description}`);
   
   try {
+    console.log('Starting skeleton set');
+    
     const setSkeleton = new SetSkeleton();
     const keyMaker = new KeyMaker();
     const shiftKey = new ShiftKey();
@@ -75,7 +81,9 @@ tests.forEach((test, index) => {
         carry: state.unit3.carry,
         hasCollapsed: state.unit3.hasCollapsed,
         pushesLength: state.unit3.pushesLength
-      }
+      },
+      numberLength: state.numberLength,
+      activeUnitTarget: state.activeUnitTarget
     });
     console.log('Expected:', test.expected);
     
@@ -91,7 +99,9 @@ tests.forEach((test, index) => {
       state.unit3.currentSymbol === test.expected.unit3.currentSymbol &&
       state.unit3.carry === test.expected.unit3.carry &&
       state.unit3.hasCollapsed === test.expected.unit3.hasCollapsed &&
-      state.unit3.pushesLength === test.expected.unit3.pushesLength;
+      state.unit3.pushesLength === test.expected.unit3.pushesLength &&
+      state.numberLength === test.expected.numberLength &&
+      state.activeUnitTarget === test.expected.activeUnitTarget;
     
     console.log(`Result: ${passed ? 'PASS' : 'FAIL'}`);
     if (!passed) {
@@ -113,7 +123,9 @@ tests.forEach((test, index) => {
           carry: state.unit3.carry,
           hasCollapsed: state.unit3.hasCollapsed,
           pushesLength: state.unit3.pushesLength
-        }
+        },
+        numberLength: state.numberLength,
+        activeUnitTarget: state.activeUnitTarget
       })}, Expected: ${JSON.stringify(test.expected)}`);
     }
   } catch (error) {

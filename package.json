@@ -1,0 +1,23 @@
+{
+  "name": "zetamorph",
+  "version": "1.0.0",
+  "description": "Zero Logic Post Computing Math Engine",
+  "main": "index.js",
+  "type": "module",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LEXICALALCHEMIST/ZetaMorph.git"
+  },
+  "author": "Johnny Moore Lexical Alchemist",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/LEXICALALCHEMIST/ZetaMorph/issues"
+  },
+  "homepage": "https://github.com/LEXICALALCHEMIST/ZetaMorph#readme"
+}

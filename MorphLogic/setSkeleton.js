@@ -5,7 +5,7 @@ import Unit1 from '../skeleton/unit1.js';
 import Unit2 from '../skeleton/unit2.js';
 import Unit3 from '../skeleton/unit3.js';
 import CarryBus from '../core/carryBus.js';
-import { SYMBOL_SEQUENCE, VOID_SYMBOL } from '../core/sacred9.js';
+import { SYMBOL_SEQUENCE } from '../core/sacred9.js';
 
 export default class SetSkeleton {
   constructor() {
@@ -16,7 +16,6 @@ export default class SetSkeleton {
     this.numberLength = 1;
     this.activeUnitTarget = 'u1';
     
-    // Bind skeleton to units
     this.unit1.skeleton = this;
     this.unit2.skeleton = this;
     this.unit3.skeleton = this;
@@ -37,18 +36,18 @@ export default class SetSkeleton {
     
     for (let i = 0; i < units.length; i++) {
       const unit = units[i];
-      unit.state.currentSymbol = VOID_SYMBOL;
+      unit.state.currentSymbol = '⊙';
       unit.state.carry = 0;
       unit.state.hasCollapsed = false;
       unit.state.pushes = [];
       unit.state.pushesLength = 0;
       
-      const digit = digits[digits.length - 1 - i]; // Right-to-left
+      const digit = digits[i]; // Left-to-right
       if (digit !== undefined) {
         console.log(`Setting unit${i + 1} to ${digit}`);
         unit.state.currentSymbol = SYMBOL_SEQUENCE[digit];
-        unit.state.pushes = Array(digit).fill(SYMBOL_SEQUENCE[digit]);
-        unit.state.pushesLength = digit;
+        unit.state.pushes = [];
+        unit.state.pushesLength = 0;
         console.log(`Set unit${i + 1} to ${digit} (symbol: ${SYMBOL_SEQUENCE[digit]})`);
       }
     }
