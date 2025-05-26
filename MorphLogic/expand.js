@@ -4,9 +4,9 @@ export default class Expand {
   expand(skeleton, carryValue, remainder) {
     console.log(`Expanding skeleton with carry: ${carryValue}, remainder: ${remainder}`);
     
-    const units = [skeleton.unit1, skeleton.unit2, skeleton.unit3];
+    const units = skeleton.units;
     const oldNumberLength = skeleton.numberLength || 1;
-    const newNumberLength = Math.min(oldNumberLength + 1, 3);
+    const newNumberLength = Math.min(oldNumberLength + 1, units.length);
     
     const newSymbols = [
       SYMBOL_SEQUENCE[carryValue], // Unit1 = carry (e.g., 1 → ●)
@@ -15,7 +15,7 @@ export default class Expand {
     ];
     
     units.forEach((unit, i) => {
-      unit.state.currentSymbol = newSymbols[i];
+      unit.state.currentSymbol = i < newSymbols.length ? newSymbols[i] : VOID_SYMBOL;
       if (i !== 0) { // Preserve Unit1's carry and hasCollapsed
         unit.state.carry = 0;
         unit.state.hasCollapsed = false;
@@ -29,7 +29,7 @@ export default class Expand {
     
     const state = skeleton.getState();
     console.log(`Expanded skeleton: numberLength: ${oldNumberLength} → ${newNumberLength}, activeUnitTarget: u${newNumberLength}`);
-    console.log(`New Skeleton: <${state.unit1.currentSymbol}${state.unit2.currentSymbol}${state.unit3.currentSymbol}|⊙⊙⊙|⊙⊙⊙>`);
+    console.log(`New Skeleton: <${state.units.map(u => u.currentSymbol).join('')}|⊙⊙⊙|⊙⊙⊙>`);
     
     return state;
   }

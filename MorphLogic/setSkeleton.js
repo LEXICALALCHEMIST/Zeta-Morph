@@ -1,48 +1,46 @@
-// setSkeleton.js
-// Located in ZetaMorph/MorphLogic/
-
-import Unit1 from '../skeleton/unit1.js';
-import Unit2 from '../skeleton/unit2.js';
-import Unit3 from '../skeleton/unit3.js';
+import { extendUnits } from './../skeleton/unitExtensions.js';
 import CarryBus from '../core/carryBus.js';
-import { SYMBOL_SEQUENCE } from '../core/sacred9.js';
+import { SYMBOL_SEQUENCE, VOID_SYMBOL } from '../core/sacred9.js';
 
 export default class SetSkeleton {
   constructor() {
-    this.unit1 = new Unit1();
-    this.unit2 = new Unit2();
-    this.unit3 = new Unit3();
-    this.carryBus = new CarryBus();
+    this.units = [];
+    this.carryBus = null;
     this.numberLength = 1;
     this.activeUnitTarget = 'u1';
-    
-    this.unit1.skeleton = this;
-    this.unit2.skeleton = this;
-    this.unit3.skeleton = this;
   }
 
-  set(number) {
+  async init() {
+    const { Unit1, Unit2, Unit3 } = await extendUnits();
+    this.units = [
+      new Unit1(),
+      new Unit2(),
+      new Unit3()
+    ];
+    this.carryBus = new CarryBus();
+    this.units.forEach(unit => { unit.skeleton = this; });
+  }
+
+  async set(number) {
+    await this.init();
     console.log(`Setting skeleton for ${number}`);
     
-    if (number < 0 || number > 999) {
-      throw new Error('Number must be between 0 and 999');
+    if (number < 0 || number > 999_999_999_999) {
+      throw new Error('Number must be between 0 and 999,999,999,999');
     }
     
     const digits = number.toString().split('').map(Number);
     this.numberLength = digits.length;
     this.activeUnitTarget = `u${this.numberLength}`;
     
-    const units = [this.unit1, this.unit2, this.unit3];
-    
-    for (let i = 0; i < units.length; i++) {
-      const unit = units[i];
-      unit.state.currentSymbol = '⊙';
+    this.units.forEach((unit, i) => {
+      unit.state.currentSymbol = VOID_SYMBOL;
       unit.state.carry = 0;
       unit.state.hasCollapsed = false;
       unit.state.pushes = [];
       unit.state.pushesLength = 0;
       
-      const digit = digits[i]; // Left-to-right
+      const digit = digits[i];
       if (digit !== undefined) {
         console.log(`Setting unit${i + 1} to ${digit}`);
         unit.state.currentSymbol = SYMBOL_SEQUENCE[digit];
@@ -50,18 +48,16 @@ export default class SetSkeleton {
         unit.state.pushesLength = 0;
         console.log(`Set unit${i + 1} to ${digit} (symbol: ${SYMBOL_SEQUENCE[digit]})`);
       }
-    }
+    });
     
     const state = this.getState();
-    console.log(`Skeleton: <${state.unit1.currentSymbol}${state.unit2.currentSymbol}${state.unit3.currentSymbol}|⊙⊙⊙|⊙⊙⊙>`);
+    console.log(`Skeleton: <${this.units.map(u => u.state.currentSymbol).join('')}|⊙⊙⊙|⊙⊙⊙>`);
     return state;
   }
 
   getState() {
     return {
-      unit1: this.unit1.state,
-      unit2: this.unit2.state,
-      unit3: this.unit3.state,
+      units: this.units.map(unit => unit.getState()),
       numberLength: this.numberLength,
       activeUnitTarget: this.activeUnitTarget
     };
