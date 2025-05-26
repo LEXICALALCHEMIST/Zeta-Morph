@@ -11,11 +11,11 @@ export default class Contract {
     
     const newSymbols = Array(units.length).fill(VOID_SYMBOL);
     if (newNumberLength >= 1) {
-      newSymbols[0] = SYMBOL_SEQUENCE[remainder]; // Set Unit1 to remainder (e.g., 9 → ▲)
+      newSymbols[0] = SYMBOL_SEQUENCE[remainder]; // Unit1 to remainder (9 → ▲)
       console.log(`CONTRACT: Setting Unit1 to ${SYMBOL_SEQUENCE[remainder]} (remainder=${remainder})`);
-      for (let i = 1; i < newNumberLength; i++) {
-        newSymbols[i] = units[i - 1].state.currentSymbol; // Shift left
-        console.log(`CONTRACT: Shifting Unit${i + 1} to ${newSymbols[i]}`);
+      if (newNumberLength > 1) {
+        newSymbols[1] = SYMBOL_SEQUENCE[remainder]; // Unit2 to remainder (9 → ▲)
+        console.log(`CONTRACT: Setting Unit2 to ${SYMBOL_SEQUENCE[remainder]} (remainder=${remainder})`);
       }
     }
     

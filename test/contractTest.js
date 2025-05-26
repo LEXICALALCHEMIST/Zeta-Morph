@@ -2,23 +2,22 @@ import SetSkeleton from '../MorphLogic/setSkeleton.js';
 import KeyMaker from '../key/keyMaker.js';
 import ShiftKey from '../key/shiftKey.js';
 import Pull from '../MorphLogic/pull.js';
-
 import { SYMBOL_SEQUENCE, VOID_SYMBOL } from '../core/sacred9.js';
 
 console.log('--- ZLME Contract Test Suite ---');
 
 const tests = [
   {
-    description: 'Set skeleton to 10 and pull 1 to reach 9',
-    operation: { a: 10, b: 1 },
+    description: 'Set skeleton to 100 and pull 1 to reach 99',
+    operation: { a: 100, b: 1 },
     expected: {
       units: [
         { currentSymbol: SYMBOL_SEQUENCE[9], carry: 0, hasCollapsed: false, pushesLength: 0 },
-        { currentSymbol: VOID_SYMBOL, carry: 0, hasCollapsed: false, pushesLength: 0 },
+        { currentSymbol: SYMBOL_SEQUENCE[9], carry: 0, hasCollapsed: false, pushesLength: 0 },
         { currentSymbol: VOID_SYMBOL, carry: 0, hasCollapsed: false, pushesLength: 0 }
       ],
-      numberLength: 1,
-      activeUnitTarget: 'u1'
+      numberLength: 2,
+      activeUnitTarget: 'u2'
     }
   }
 ];
@@ -52,6 +51,7 @@ async function runTests() {
       const shiftedKey = shiftKey.shift(originalKey, setLength);
       console.log(`Shifted Key: ${JSON.stringify(shiftedKey)}`);
       
+      console.log('Initiating PULL operation');
       state = pull.pull(test.operation.b, shiftedKey);
       console.log(`Post-Pull State: ${JSON.stringify({
         units: state.units.map(u => u.currentSymbol),

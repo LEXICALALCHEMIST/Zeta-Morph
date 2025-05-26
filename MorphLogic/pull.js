@@ -27,13 +27,10 @@ export default class Pull {
         if (numValue > 0) {
           console.log(`Pulling ${unitName}-${position}: ${numValue}`);
           unit.pull(numValue, this.skeleton.carryBus);
+          // Skip negative carry application, handled by Contract
           if (this.skeleton.carryBus.carryValue < 0) {
-            const { carryValue, carryTarget } = this.skeleton.carryBus.flushCarry();
-            const targetIndex = parseInt(carryTarget.replace('Unit', '')) - 1;
-            if (targetIndex >= 0 && targetIndex < units.length) {
-              units[targetIndex].pull(-carryValue, this.skeleton.carryBus);
-              console.log(`Negative carry applied to Unit${targetIndex + 1}: ${carryValue}`);
-            }
+            console.log(`Skipping negative carry application: ${this.skeleton.carryBus.carryValue}`);
+            this.skeleton.carryBus.flushCarry(); // Clear carry without applying
           }
         } else if (currentSymbol !== VOID_SYMBOL) {
           console.log(`Preserving ${unitName}-${position}: ${currentSymbol} (no pull)`);
@@ -52,4 +49,4 @@ export default class Pull {
     console.log(`Final Skeleton: <${state.units.map(u => u.currentSymbol).join('')}|⊙⊙⊙|⊙⊙⊙>`);
     return state;
   }
-}    
+}
