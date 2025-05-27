@@ -6,20 +6,19 @@ export default class Expand {
     
     const units = skeleton.units;
     const oldNumberLength = skeleton.numberLength || 1;
-    const newNumberLength = Math.min(oldNumberLength + 1, units.length);
+    const newNumberLength = Math.min(oldNumberLength + 1, 6); // Max 6 units
     
-    const newSymbols = [
-      SYMBOL_SEQUENCE[carryValue], // Unit1 = carry (e.g., 1 → ●)
-      SYMBOL_SEQUENCE[remainder], // Unit2 = remainder (e.g., 0 → ⚙)
-      oldNumberLength > 1 ? units[1].state.currentSymbol : VOID_SYMBOL // Unit3 = old Unit2 or ⊙
-    ];
+    const newSymbols = Array(units.length).fill(VOID_SYMBOL);
+    newSymbols[0] = SYMBOL_SEQUENCE[carryValue]; // Unit1 = carry (e.g., 1 → ●)
+    for (let i = 1; i < newNumberLength; i++) {
+      newSymbols[i] = SYMBOL_SEQUENCE[0]; // New digits = ⚙ (0)
+      console.log(`Setting Unit${i + 1} to ${newSymbols[i]}`);
+    }
     
     units.forEach((unit, i) => {
-      unit.state.currentSymbol = i < newSymbols.length ? newSymbols[i] : VOID_SYMBOL;
-      if (i !== 0) { // Preserve Unit1's carry and hasCollapsed
-        unit.state.carry = 0;
-        unit.state.hasCollapsed = false;
-      }
+      unit.state.currentSymbol = newSymbols[i];
+      unit.state.carry = i === 0 ? carryValue : 0; // Carry only on Unit1
+      unit.state.hasCollapsed = i === 0 ? true : false; // Collapse only on Unit1
       unit.state.pushes = [];
       unit.state.pushesLength = 0;
     });
@@ -28,8 +27,9 @@ export default class Expand {
     skeleton.activeUnitTarget = `u${newNumberLength}`;
     
     const state = skeleton.getState();
+    const skeletonDisplay = `<${state.units.slice(0, 3).map(u => u.currentSymbol).join('')}|${state.units.slice(3, 6).map(u => u.currentSymbol).join('')}|⊉⊉⊉>`;
     console.log(`Expanded skeleton: numberLength: ${oldNumberLength} → ${newNumberLength}, activeUnitTarget: u${newNumberLength}`);
-    console.log(`New Skeleton: <${state.units.map(u => u.currentSymbol).join('')}|⊙⊙⊙|⊙⊙⊙>`);
+    console.log(`New Skeleton: ${skeletonDisplay}`);
     
     return state;
   }

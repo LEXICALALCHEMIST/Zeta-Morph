@@ -1,55 +1,26 @@
-// shiftKey.js
-// Located in ZetaMorph/key/
-
 import { SYMBOL_SEQUENCE, VOID_SYMBOL } from '../core/sacred9.js';
 
 export default class ShiftKey {
   shift(key, targetLength) {
     console.log(`Shifting key for ${key.number} to targetLength: ${targetLength}`);
     
-    // Validate targetLength
-    if (targetLength < 1 || targetLength > 3) {
-      throw new Error('targetLength must be between 1 and 3');
+    if (targetLength < 1 || targetLength > 6) {
+      throw new Error('Target length must be between 1 and 6');
     }
     
-    // Extract original push and view
-    const oldPush = [...key.push];
-    const oldView = [...key.view];
+    const oldPush = key.push;
+    console.log(`Shifting key: Old: PUSH[${oldPush.join(', ')}]`);
     
-    // Parse digits from push
-    const digits = key.push.map(entry => {
-      const [, value] = entry.split(':');
-      return value === 'null' ? null : parseInt(value);
-    });
+    const newPush = Array(targetLength).fill().map((_, i) => `U${i + 1}:null`);
+    const newView = Array(targetLength).fill(VOID_SYMBOL);
     
-    // Shift digits rightward
-    const newDigits = Array(3).fill(null);
-    const shiftAmount = targetLength - key.length;
-    if (shiftAmount >= 0) {
-      for (let i = 0; i < key.length; i++) {
-        newDigits[i + shiftAmount] = digits[i];
-      }
-    } else {
-      // Truncate if targetLength < key.length
-      for (let i = 0; i < targetLength; i++) {
-        newDigits[i] = digits[i + key.length - targetLength];
-      }
-    }
+    const digits = key.number.toString().split('').map(Number);
+    const startIndex = Math.max(0, targetLength - digits.length);
     
-    // Generate new push and view
-    const newPush = newDigits.map((value, i) => {
-      const unit = `U${i + 1}`;
-      return `${unit}:${value === null ? 'null' : value}`;
-    });
-    const newView = newDigits.map(value => value === null ? VOID_SYMBOL : SYMBOL_SEQUENCE[value]);
-    
-    // Determine new targetUnit
-    let targetUnit = null;
-    for (let i = newDigits.length - 1; i >= 0; i--) {
-      if (newDigits[i] !== null) {
-        targetUnit = `u${i + 1}`;
-        break;
-      }
+    for (let i = 0; i < digits.length && startIndex + i < targetLength; i++) {
+      const unit = `U${startIndex + i + 1}`;
+      newPush[startIndex + i] = `${unit}:${digits[i]}`;
+      newView[startIndex + i] = SYMBOL_SEQUENCE[digits[i]];
     }
     
     const newKey = {
@@ -58,10 +29,10 @@ export default class ShiftKey {
       targetLength,
       push: newPush,
       view: newView,
-      targetUnit
+      targetUnit: `u${targetLength}`
     };
     
-    console.log(`Shifting key: Old: PUSH[${oldPush.join(' ')}], New: PUSH[${newPush.join(' ')}]`);
+    console.log(`Shifting key: New: PUSH[${newPush.join(', ')}]`);
     return newKey;
   }
 }

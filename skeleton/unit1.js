@@ -1,24 +1,22 @@
-// unit1.js
-// Located in ZetaMorph/skeleton/
-
-import { SYMBOL_SEQUENCE } from '../core/sacred9.js';
-import Expand from '../MorphLogic/expand.js';
+import { SYMBOL_SEQUENCE, VOID_SYMBOL } from '../core/sacred9.js';
+import KeyMaker from '../key/keyMaker.js';
 
 console.log('unit1.js loaded');
 
 export default class Unit1 {
   constructor() {
     this.state = {
-      currentSymbol: '⊙',
+      currentSymbol: VOID_SYMBOL,
       carry: 0,
       hasCollapsed: false,
       pushes: [],
-      pushesLength: 0
+      pushesLength: 0,
+      u1Collapse: false
     };
   }
 
   push(count, carryBus) {
-    let currentIndex = this.state.currentSymbol && this.state.currentSymbol !== '⊙'
+    let currentIndex = this.state.currentSymbol && this.state.currentSymbol !== VOID_SYMBOL
       ? SYMBOL_SEQUENCE.indexOf(this.state.currentSymbol)
       : -1;
     
@@ -34,19 +32,21 @@ export default class Unit1 {
       if (currentIndex === SYMBOL_SEQUENCE.length - 1) {
         this.state.carry = 1;
         this.state.hasCollapsed = true;
-        const remainder = currentIndex % 10; // Fix: Correct remainder for 10 (0 → ⚙)
-        this.state.currentSymbol = SYMBOL_SEQUENCE[remainder];
-        carryBus.registerCarry(1, 'Unit2');
+        this.state.u1Collapse = true;
         console.log(
-          `Unit1 Carry: CARRY: ${this.state.carry} COLLAPSED: ${this.state.hasCollapsed}`
+          `Unit1 Carry: CARRY: ${this.state.carry} COLLAPSED: ${this.state.hasCollapsed} U1COLLAPSE: ${this.state.u1Collapse}`
         );
-        console.log(`CarryBus: Registered CARRY: 1 to Unit2`);
-        console.log(`Remainder set to: ${remainder}`);
         
-        // Trigger expansion
-        const expand = new Expand();
-        expand.expand(this.skeleton, this.state.carry, remainder);
-        break; // Stop pushing after collapse
+        if (this.skeleton) {
+          const currentNumber = parseInt(this.skeleton.units.slice(0, this.skeleton.numberLength).map(u => SYMBOL_SEQUENCE.indexOf(u.state.currentSymbol)).join('') || '0', 10);
+          const newNumber = currentNumber; // No extra +1, carry handled by cascade
+          this.skeleton.resetSnapshot(newNumber);
+          
+          const keyMaker = new KeyMaker();
+          const newKey = keyMaker.makeKey(newNumber);
+          console.log(`Regenerated Key: ${JSON.stringify(newKey)}`);
+        }
+        break;
       }
     }
     

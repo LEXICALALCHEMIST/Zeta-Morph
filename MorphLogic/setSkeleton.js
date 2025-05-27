@@ -1,4 +1,4 @@
-import { extendUnits } from './../skeleton/unitExtensions.js';
+import { extendUnits } from '../skeleton/unitExtensions.js';
 import CarryBus from '../core/carryBus.js';
 import { SYMBOL_SEQUENCE, VOID_SYMBOL } from '../core/sacred9.js';
 
@@ -8,14 +8,18 @@ export default class SetSkeleton {
     this.carryBus = null;
     this.numberLength = 1;
     this.activeUnitTarget = 'u1';
+    this.snapshot = null;
   }
 
   async init() {
-    const { Unit1, Unit2, Unit3 } = await extendUnits();
+    const { Unit1, Unit2, Unit3, Unit4, Unit5, Unit6 } = await extendUnits();
     this.units = [
       new Unit1(),
       new Unit2(),
-      new Unit3()
+      new Unit3(),
+      new Unit4(),
+      new Unit5(),
+      new Unit6()
     ];
     this.carryBus = new CarryBus();
     this.units.forEach(unit => { unit.skeleton = this; });
@@ -25,8 +29,8 @@ export default class SetSkeleton {
     await this.init();
     console.log(`Setting skeleton for ${number}`);
     
-    if (number < 0 || number > 999_999_999_999) {
-      throw new Error('Number must be between 0 and 999,999,999,999');
+    if (number < 0 || number > 999999) {
+      throw new Error('Number must be between 0 and 999,999');
     }
     
     const digits = number.toString().split('').map(Number);
@@ -51,7 +55,48 @@ export default class SetSkeleton {
     });
     
     const state = this.getState();
-    console.log(`Skeleton: <${this.units.map(u => u.state.currentSymbol).join('')}|⊙⊙⊙|⊙⊙⊙>`);
+    this.snapshot = JSON.parse(JSON.stringify(state)); // Deep copy snapshot
+    console.log(`Snapshot: ${JSON.stringify({
+      units: this.snapshot.units.map(u => u.currentSymbol),
+      numberLength: this.snapshot.numberLength,
+      activeUnitTarget: this.snapshot.activeUnitTarget
+    })}`);
+    const skeleton = `<${state.units.slice(0, 3).map(u => u.currentSymbol).join('')}|${state.units.slice(3, 6).map(u => u.currentSymbol).join('')}|⊉⊉⊉>`;
+    console.log(`Skeleton: ${skeleton}`);
+    return state;
+  }
+
+  resetSnapshot(number) {
+    console.log(`Resetting skeleton snapshot for ${number}`);
+    
+    const digits = number.toString().split('').map(Number);
+    this.numberLength = digits.length;
+    this.activeUnitTarget = `u${this.numberLength}`;
+    
+    this.units.forEach((unit, i) => {
+      unit.state.currentSymbol = VOID_SYMBOL;
+      unit.state.carry = 0;
+      unit.state.hasCollapsed = false;
+      unit.state.pushes = [];
+      unit.state.pushesLength = 0;
+      
+      const digit = digits[i];
+      if (digit !== undefined) {
+        console.log(`Resetting unit${i + 1} to ${digit}`);
+        unit.state.currentSymbol = SYMBOL_SEQUENCE[digit];
+        console.log(`Reset unit${i + 1} to ${digit} (symbol: ${SYMBOL_SEQUENCE[digit]})`);
+      }
+    });
+    
+    const state = this.getState();
+    this.snapshot = JSON.parse(JSON.stringify(state)); // Deep copy snapshot
+    console.log(`Snapshot: ${JSON.stringify({
+      units: this.snapshot.units.map(u => u.currentSymbol),
+      numberLength: this.snapshot.numberLength,
+      activeUnitTarget: this.snapshot.activeUnitTarget
+    })}`);
+    const skeleton = `<${state.units.slice(0, 3).map(u => u.currentSymbol).join('')}|${state.units.slice(3, 6).map(u => u.currentSymbol).join('')}|⊉⊉⊉>`;
+    console.log(`Reset Skeleton: ${skeleton}`);
     return state;
   }
 

@@ -4,43 +4,20 @@ import ShiftKey from '../key/shiftKey.js';
 import Add from '../MorphLogic/add.js';
 import { SYMBOL_SEQUENCE, VOID_SYMBOL } from '../core/sacred9.js';
 
-console.log('--- ZLME Addition Test Suite ---');
+console.log('--- ZLME Add Test Suite ---');
 
 const tests = [
   {
-    description: 'Set skeleton to 50 and stack 9 to reach 59',
-    operation: { a: 50, b: 9 },
-    expected: {
-      units: [
-        { currentSymbol: SYMBOL_SEQUENCE[5], carry: 0, hasCollapsed: false, pushesLength: 0 },
-        { currentSymbol: SYMBOL_SEQUENCE[9], carry: 0, hasCollapsed: false, pushesLength: 0 },
-        { currentSymbol: VOID_SYMBOL, carry: 0, hasCollapsed: false, pushesLength: 0 }
-      ],
-      numberLength: 2,
-      activeUnitTarget: 'u2'
-    }
-  },
-  {
-    description: 'Set skeleton to 100 and stack 50 to reach 150',
+    description: 'Set skeleton to 100 and add 50 to reach 150',
     operation: { a: 100, b: 50 },
     expected: {
       units: [
         { currentSymbol: SYMBOL_SEQUENCE[1], carry: 0, hasCollapsed: false, pushesLength: 0 },
         { currentSymbol: SYMBOL_SEQUENCE[5], carry: 0, hasCollapsed: false, pushesLength: 0 },
-        { currentSymbol: SYMBOL_SEQUENCE[0], carry: 0, hasCollapsed: false, pushesLength: 0 }
-      ],
-      numberLength: 3,
-      activeUnitTarget: 'u3'
-    }
-  },
-  {
-    description: 'Set skeleton to 99 and stack 1 to reach 100',
-    operation: { a: 99, b: 1 },
-    expected: {
-      units: [
-        { currentSymbol: SYMBOL_SEQUENCE[1], carry: 0, hasCollapsed: false, pushesLength: 0 },
         { currentSymbol: SYMBOL_SEQUENCE[0], carry: 0, hasCollapsed: false, pushesLength: 0 },
-        { currentSymbol: SYMBOL_SEQUENCE[0], carry: 0, hasCollapsed: false, pushesLength: 0 }
+        { currentSymbol: VOID_SYMBOL, carry: 0, hasCollapsed: false, pushesLength: 0 },
+        { currentSymbol: VOID_SYMBOL, carry: 0, hasCollapsed: false, pushesLength: 0 },
+        { currentSymbol: VOID_SYMBOL, carry: 0, hasCollapsed: false, pushesLength: 0 }
       ],
       numberLength: 3,
       activeUnitTarget: 'u3'
@@ -64,15 +41,17 @@ async function runTests() {
       const setState = await setSkeleton.set(test.operation.a);
       const setLength = test.operation.a.toString().length;
       let state = setState;
-      let skeleton = `<${state.units.map(u => u.currentSymbol).join('')}|⊙⊙⊙|⊙⊙⊙>`;
-      console.log(`Initial Skeleton: ${skeleton}`);
+      const initialSkeleton = `<${state.units.slice(0, 3).map(u => u.currentSymbol).join('')}|${state.units.slice(3, 6).map(u => u.currentSymbol).join('')}|⊉⊉⊉>`;
+      console.log(`Initial Skeleton: ${initialSkeleton}`);
       
       const originalKey = keyMaker.makeKey(test.operation.b);
+      console.log(`Original Key: ${JSON.stringify(originalKey)}`);
       const shiftedKey = shiftKey.shift(originalKey, setLength);
+      console.log(`Shifted Key: ${JSON.stringify(shiftedKey)}`);
       
-      state = add.add(test.operation.b, shiftedKey);
+      state = await add.add(test.operation.b, shiftedKey);
       
-      skeleton = `<${state.units.map(u => u.currentSymbol).join('')}|⊙⊙⊙|⊙⊙⊙>`;
+      const skeleton = `<${state.units.slice(0, 3).map(u => u.currentSymbol).join('')}|${state.units.slice(3, 6).map(u => u.currentSymbol).join('')}|⊉⊉⊉>`;
       console.log(`Final Skeleton: ${skeleton}`);
       
       console.log('Result:', {

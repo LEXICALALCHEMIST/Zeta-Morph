@@ -1,26 +1,24 @@
 import SetSkeleton from '../MorphLogic/setSkeleton.js';
-import KeyMaker from '../key/keyMaker.js';
-import ShiftKey from '../key/shiftKey.js';
 import Add from '../MorphLogic/add.js';
 import { SYMBOL_SEQUENCE, VOID_SYMBOL } from '../core/sacred9.js';
 
-console.log('--- ZLME Expand Test Suite ---');
+console.log('--- ZLME Add Switch Test Suite ---');
 
 const tests = [
   {
-    description: 'Set skeleton to 999 and stack 1 to reach 1,000',
-    operation: { a: 999, b: 1 },
+    description: 'Set skeleton to 50 and stack 100 to reach 150 with morphInit',
+    operation: { a: 50, b: 100 },
     expected: {
       units: [
-        { currentSymbol: SYMBOL_SEQUENCE[1], carry: 1, hasCollapsed: true, pushesLength: 0 },
+        { currentSymbol: SYMBOL_SEQUENCE[1], carry: 0, hasCollapsed: false, pushesLength: 0 },
+        { currentSymbol: SYMBOL_SEQUENCE[5], carry: 0, hasCollapsed: false, pushesLength: 0 },
         { currentSymbol: SYMBOL_SEQUENCE[0], carry: 0, hasCollapsed: false, pushesLength: 0 },
-        { currentSymbol: SYMBOL_SEQUENCE[0], carry: 0, hasCollapsed: false, pushesLength: 0 },
-        { currentSymbol: SYMBOL_SEQUENCE[0], carry: 0, hasCollapsed: false, pushesLength: 0 },
+        { currentSymbol: VOID_SYMBOL, carry: 0, hasCollapsed: false, pushesLength: 0 },
         { currentSymbol: VOID_SYMBOL, carry: 0, hasCollapsed: false, pushesLength: 0 },
         { currentSymbol: VOID_SYMBOL, carry: 0, hasCollapsed: false, pushesLength: 0 }
       ],
-      numberLength: 4,
-      activeUnitTarget: 'u4'
+      numberLength: 3,
+      activeUnitTarget: 'u3'
     }
   }
 ];
@@ -34,22 +32,13 @@ async function runTests() {
       console.log('Starting skeleton set');
       
       const setSkeleton = new SetSkeleton();
-      const keyMaker = new KeyMaker();
-      const shiftKey = new ShiftKey();
       const add = new Add(setSkeleton);
       
       const setState = await setSkeleton.set(test.operation.a);
-      const setLength = test.operation.a.toString().length;
-      let state = setState;
-      const initialSkeleton = `<${state.units.slice(0, 3).map(u => u.currentSymbol).join('')}|${state.units.slice(3, 6).map(u => u.currentSymbol).join('')}|⊉⊉⊉>`;
+      const initialSkeleton = `<${setState.units.slice(0, 3).map(u => u.currentSymbol).join('')}|${setState.units.slice(3, 6).map(u => u.currentSymbol).join('')}|⊉⊉⊉>`;
       console.log(`Initial Skeleton: ${initialSkeleton}`);
       
-      const originalKey = keyMaker.makeKey(test.operation.b);
-      console.log(`Original Key: ${JSON.stringify(originalKey)}`);
-      const shiftedKey = shiftKey.shift(originalKey, setLength);
-      console.log(`Shifted Key: ${JSON.stringify(shiftedKey)}`);
-      
-      state = add.add(test.operation.b, shiftedKey);
+      const state = await add.add(test.operation.b);
       
       const skeleton = `<${state.units.slice(0, 3).map(u => u.currentSymbol).join('')}|${state.units.slice(3, 6).map(u => u.currentSymbol).join('')}|⊉⊉⊉>`;
       console.log(`Final Skeleton: ${skeleton}`);

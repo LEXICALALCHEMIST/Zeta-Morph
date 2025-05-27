@@ -1,36 +1,42 @@
-import KeyMaker from '../key/keyMaker.js';
+import { morphInit } from '../core/morphInit.js';
 import { SYMBOL_SEQUENCE, VOID_SYMBOL } from '../core/sacred9.js';
 
 export default class Pull {
   constructor(skeleton) {
     this.skeleton = skeleton;
-    this.keyMaker = new KeyMaker();
   }
 
-  pull(keyNumber, shiftedKey) {
-    console.log(`Applying PULL for ${keyNumber}`);
+  async pull(keyNumber) {
+    console.log(`Applying pull for ${keyNumber}`);
     
-    const key = shiftedKey || this.keyMaker.makeKey(keyNumber);
+    const currentSkeletonNumber = parseInt(this.skeleton.units.slice(0, this.skeleton.numberLength).map(u => SYMBOL_SEQUENCE.indexOf(u.state.currentSymbol)).join('') || '0', 10);
+    
+    // Use morphInit to determine skeleton and key
+    const { skeleton, key } = await morphInit(keyNumber, currentSkeletonNumber);
+    this.skeleton = skeleton;
     const units = this.skeleton.units;
-
-    for (let i = 0; i < key.push.length; i++) {
+    
+    // Apply the shifted key for subtraction
+    for (let i = 0; i < key.push.length && i < units.length; i++) {
       const pushEntry = key.push[i];
       const [unitName, value] = pushEntry.split(':');
       const unitIndex = parseInt(unitName.replace('U', '')) - 1;
       const unit = units[unitIndex];
       const position = `u${unitIndex + 1}`;
-
-      const currentSymbol = unit.state.currentSymbol || VOID_SYMBOL;
-
+      
+      const currentSymbol = unit.state && unit.state.currentSymbol ? unit.state.currentSymbol : VOID_SYMBOL;
+      
       if (value !== 'null') {
         const numValue = parseInt(value);
         if (numValue > 0) {
           console.log(`Pulling ${unitName}-${position}: ${numValue}`);
           unit.pull(numValue, this.skeleton.carryBus);
-          // Skip negative carry application, handled by Contract
-          if (this.skeleton.carryBus.carryValue < 0) {
-            console.log(`Skipping negative carry application: ${this.skeleton.carryBus.carryValue}`);
-            this.skeleton.carryBus.flushCarry(); // Clear carry without applying
+          if (this.skeleton.carryBus.carryValue < 0 && unitIndex === 0) {
+            console.log(`Unit1 borrow triggered, resetting snapshot`);
+            const currentNumber = parseInt(this.skeleton.units.slice(0, this.skeleton.numberLength).map(u => SYMBOL_SEQUENCE.indexOf(u.state.currentSymbol)).join('') || '0', 10);
+            const newNumber = currentNumber - numValue;
+            await this.skeleton.resetSnapshot(newNumber);
+            break;
           }
         } else if (currentSymbol !== VOID_SYMBOL) {
           console.log(`Preserving ${unitName}-${position}: ${currentSymbol} (no pull)`);
@@ -39,14 +45,17 @@ export default class Pull {
         console.log(`Skipping ${unitName}-${position}: null`);
       }
     }
-
+    
     units.forEach(unit => {
-      unit.state.pushes = [];
-      unit.state.pushesLength = 0;
+      if (unit.state && unit.state.pushes) {
+        unit.state.pushes = [];
+        unit.state.pushesLength = 0;
+      }
     });
-
-    const state = this.skeleton.getState();
-    console.log(`Final Skeleton: <${state.units.map(u => u.currentSymbol).join('')}|⊙⊙⊙|⊙⊙⊙>`);
-    return state;
+    
+    const finalState = this.skeleton.getState();
+    const skeletonDisplay = `<${finalState.units.slice(0, 3).map(u => u.currentSymbol).join('')}|${finalState.units.slice(3, 6).map(u => u.currentSymbol).join('')}|⊉⊉⊉>`;
+    console.log(`Final Skeleton: ${skeletonDisplay}`);
+    return finalState;
   }
 }

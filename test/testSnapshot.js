@@ -4,15 +4,15 @@ import ShiftKey from '../key/shiftKey.js';
 import Add from '../MorphLogic/add.js';
 import { SYMBOL_SEQUENCE, VOID_SYMBOL } from '../core/sacred9.js';
 
-console.log('--- ZLME Expand Test Suite ---');
+console.log('--- ZLME Snapshot Test Suite ---');
 
 const tests = [
   {
-    description: 'Set skeleton to 999 and stack 1 to reach 1,000',
+    description: 'Set skeleton to 999 and stack 1 to reach 1,000 with snapshot',
     operation: { a: 999, b: 1 },
     expected: {
       units: [
-        { currentSymbol: SYMBOL_SEQUENCE[1], carry: 1, hasCollapsed: true, pushesLength: 0 },
+        { currentSymbol: SYMBOL_SEQUENCE[1], carry: 0, hasCollapsed: false, pushesLength: 0, u1Collapse: false },
         { currentSymbol: SYMBOL_SEQUENCE[0], carry: 0, hasCollapsed: false, pushesLength: 0 },
         { currentSymbol: SYMBOL_SEQUENCE[0], carry: 0, hasCollapsed: false, pushesLength: 0 },
         { currentSymbol: SYMBOL_SEQUENCE[0], carry: 0, hasCollapsed: false, pushesLength: 0 },
@@ -59,7 +59,8 @@ async function runTests() {
           currentSymbol: unit.currentSymbol,
           carry: unit.carry,
           hasCollapsed: unit.hasCollapsed,
-          pushesLength: unit.pushesLength
+          pushesLength: unit.pushesLength,
+          u1Collapse: unit.state.u1Collapse || false
         })),
         numberLength: state.numberLength,
         activeUnitTarget: state.activeUnitTarget
@@ -71,7 +72,8 @@ async function runTests() {
           unit.currentSymbol === test.expected.units[i].currentSymbol &&
           unit.carry === test.expected.units[i].carry &&
           unit.hasCollapsed === test.expected.units[i].hasCollapsed &&
-          unit.pushesLength === test.expected.units[i].pushesLength
+          unit.pushesLength === test.expected.units[i].pushesLength &&
+          (i === 0 ? (unit.state.u1Collapse || false) === (test.expected.units[i].u1Collapse || false) : true)
         ) &&
         state.numberLength === test.expected.numberLength &&
         state.activeUnitTarget === test.expected.activeUnitTarget;
@@ -83,7 +85,8 @@ async function runTests() {
             currentSymbol: unit.currentSymbol,
             carry: unit.carry,
             hasCollapsed: unit.hasCollapsed,
-            pushesLength: unit.pushesLength
+            pushesLength: unit.pushesLength,
+            u1Collapse: unit.state.u1Collapse || false
           })),
           numberLength: state.numberLength,
           activeUnitTarget: state.activeUnitTarget

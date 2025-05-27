@@ -1,24 +1,28 @@
-import KeyMaker from '../key/keyMaker.js';
+import { morphInit } from '../core/morphInit.js';
 import { SYMBOL_SEQUENCE, VOID_SYMBOL } from '../core/sacred9.js';
 
 export default class Add {
   constructor(skeleton) {
     this.skeleton = skeleton;
-    this.keyMaker = new KeyMaker();
   }
 
-  add(keyNumber, shiftedKey) {
-    console.log(`Applying key for ${keyNumber}`);
+  async add(keyNumber) {
+    console.log(`Applying addition for ${keyNumber}`);
     
-    const key = shiftedKey || this.keyMaker.makeKey(keyNumber);
+    const currentSkeletonNumber = parseInt(this.skeleton.units.slice(0, this.skeleton.numberLength).map(u => SYMBOL_SEQUENCE.indexOf(u.state.currentSymbol)).join('') || '0', 10);
+    
+    // Use morphInit to determine skeleton and key
+    const { skeleton, key } = await morphInit(keyNumber, currentSkeletonNumber);
+    this.skeleton = skeleton;
     const units = this.skeleton.units;
     
-    for (let i = 0; i < key.push.length; i++) {
+    // Apply the shifted key
+    for (let i = 0; i < key.push.length && i < units.length; i++) {
       const pushEntry = key.push[i];
       const [unitName, value] = pushEntry.split(':');
       const unitIndex = parseInt(unitName.replace('U', '')) - 1;
       const unit = units[unitIndex];
-      const position = i === 0 ? 'first' : i === 1 ? 'second' : 'third';
+      const position = `u${unitIndex + 1}`;
       
       const currentSymbol = unit.state && unit.state.currentSymbol ? unit.state.currentSymbol : VOID_SYMBOL;
       
@@ -27,12 +31,12 @@ export default class Add {
         if (numValue > 0) {
           console.log(`Pushing ${unitName}-${position}: ${numValue}`);
           unit.push(numValue, this.skeleton.carryBus);
-          if (this.skeleton.carryBus.carryValue > 0) {
+          while (this.skeleton.carryBus.carryValue > 0) {
             const { carryValue, carryTarget } = this.skeleton.carryBus.flushCarry();
             const targetIndex = parseInt(carryTarget.replace('Unit', '')) - 1;
             if (targetIndex >= 0 && targetIndex < units.length) {
-              units[targetIndex].push(carryValue, this.skeleton.carryBus);
               console.log(`Carry applied to Unit${targetIndex + 1}: ${carryValue}`);
+              units[targetIndex].push(carryValue, this.skeleton.carryBus);
             }
           }
         } else if (currentSymbol === VOID_SYMBOL) {
@@ -53,8 +57,9 @@ export default class Add {
       }
     });
     
-    const state = this.skeleton.getState();
-    console.log(`Final Skeleton: <${state.units.map(u => u.currentSymbol).join('')}|⊙⊙⊙|⊙⊙⊙>`);
-    return state;
+    const finalState = this.skeleton.getState();
+    const skeletonDisplay = `<${finalState.units.slice(0, 3).map(u => u.currentSymbol).join('')}|${finalState.units.slice(3, 6).map(u => u.currentSymbol).join('')}|⊉⊉⊉>`;
+    console.log(`Final Skeleton: ${skeletonDisplay}`);
+    return finalState;
   }
 }
