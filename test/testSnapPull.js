@@ -1,40 +1,25 @@
 import SetSkeleton from '../MorphLogic/setSkeleton.js';
-import Add from '../MorphLogic/add.js';
+import Pull from '../MorphLogic/pull.js';
+import { morphInit } from '../core/morphInit.js';
 import { SYMBOL_SEQUENCE, VOID_SYMBOL } from '../core/sacred9.js';
 
-console.log('--- ZLME Snapshot Test Suite ---');
+console.log('NUEROM PROTOCOL - SNAP PULL TEST KIT');
 
 const tests = [
   {
-    description: 'Set skeleton to 999 and stack 1 to reach 1,000 with snapshot',
-    operation: { a: 999, b: 1 },
+    description: 'Subtract 1 LSD from skeleton 100, expect 99 using pull',
+    operation: { currentSkeleton: 100, subtract: 1 },
     expected: {
       units: [
-        { currentSymbol: SYMBOL_SEQUENCE[1], carry: 0, hasCollapsed: false, pushesLength: 0 },
-        { currentSymbol: SYMBOL_SEQUENCE[0], carry: 0, hasCollapsed: false, pushesLength: 0 },
-        { currentSymbol: SYMBOL_SEQUENCE[0], carry: 0, hasCollapsed: false, pushesLength: 0 },
-        { currentSymbol: SYMBOL_SEQUENCE[0], carry: 0, hasCollapsed: false, pushesLength: 0 },
+        { currentSymbol: SYMBOL_SEQUENCE[9], carry: 0, hasCollapsed: false, pushesLength: 0 },
+        { currentSymbol: SYMBOL_SEQUENCE[9], carry: 0, hasCollapsed: false, pushesLength: 0 },
+        { currentSymbol: VOID_SYMBOL, carry: 0, hasCollapsed: false, pushesLength: 0 },
+        { currentSymbol: VOID_SYMBOL, carry: 0, hasCollapsed: false, pushesLength: 0 },
         { currentSymbol: VOID_SYMBOL, carry: 0, hasCollapsed: false, pushesLength: 0 },
         { currentSymbol: VOID_SYMBOL, carry: 0, hasCollapsed: false, pushesLength: 0 }
       ],
-      numberLength: 4,
-      activeUnitTarget: 'u4'
-    }
-  },
-  {
-    description: 'Set skeleton to 99,999 and stack 1 to reach 100,000 with snapshot',
-    operation: { a: 99999, b: 2 },
-    expected: {
-      units: [
-        { currentSymbol: SYMBOL_SEQUENCE[1], carry: 0, hasCollapsed: false, pushesLength: 0 },
-        { currentSymbol: SYMBOL_SEQUENCE[0], carry: 0, hasCollapsed: false, pushesLength: 0 },
-        { currentSymbol: SYMBOL_SEQUENCE[0], carry: 0, hasCollapsed: false, pushesLength: 0 },
-        { currentSymbol: SYMBOL_SEQUENCE[0], carry: 0, hasCollapsed: false, pushesLength: 0 },
-        { currentSymbol: SYMBOL_SEQUENCE[0], carry: 0, hasCollapsed: false, pushesLength: 0 },
-        { currentSymbol: SYMBOL_SEQUENCE[0], carry: 0, hasCollapsed: false, pushesLength: 0 }
-      ],
-      numberLength: 6,
-      activeUnitTarget: 'u6'
+      numberLength: 2,
+      activeUnitTarget: 'u2'
     }
   }
 ];
@@ -47,24 +32,26 @@ async function runTests() {
     try {
       console.log('Starting skeleton set');
       
-      const setSkeleton = new SetSkeleton();
-      const add = new Add(setSkeleton);
-      
-      const setState = await setSkeleton.set(test.operation.a);
+      // Initialize skeleton with pull units
+      const { skeleton, key } = await morphInit(test.operation.subtract, test.operation.currentSkeleton, 'pull');
+      await skeleton.set(test.operation.currentSkeleton);
+      const setState = skeleton.getState();
       const initialSkeleton = `<${setState.units.slice(0, 3).map(u => u.currentSymbol).join('')}|${setState.units.slice(3, 6).map(u => u.currentSymbol).join('')}|⊙⊙⊙>`;
-      console.log(`Initial Skeleton: ${initialSkeleton}`);
+      console.log(`Skeleton: ${initialSkeleton}`);
       
-      const state = await add.add(test.operation.b);
+      // Apply subtraction
+      const pull = new Pull(skeleton);
+      const state = await pull.pull(test.operation.subtract);
       
-      const skeleton = `<${state.units.slice(0, 3).map(u => u.currentSymbol).join('')}|${state.units.slice(3, 6).map(u => u.currentSymbol).join('')}|⊙⊙⊙>`;
-      console.log(`Final Skeleton: ${skeleton}`);
+      const skeletonDisplay = `<${state.units.slice(0, 3).map(u => u.currentSymbol).join('')}|${state.units.slice(3, 6).map(u => u.currentSymbol).join('')}|⊙⊙⊙>`;
+      console.log(`Final Skeleton: ${skeletonDisplay}`);
       
       console.log('Result:', {
         units: state.units.map(unit => ({
           currentSymbol: unit.currentSymbol,
           carry: unit.carry,
           hasCollapsed: unit.hasCollapsed,
-          pushesLength: unit.pushesLength
+          pushesLength: unit.pushesLength || 0
         })),
         numberLength: state.numberLength,
         activeUnitTarget: state.activeUnitTarget
@@ -76,7 +63,7 @@ async function runTests() {
           unit.currentSymbol === test.expected.units[i].currentSymbol &&
           unit.carry === test.expected.units[i].carry &&
           unit.hasCollapsed === test.expected.units[i].hasCollapsed &&
-          unit.pushesLength === test.expected.units[i].pushesLength
+          (unit.pushesLength || 0) === test.expected.units[i].pushesLength
         ) &&
         state.numberLength === test.expected.numberLength &&
         state.activeUnitTarget === test.expected.activeUnitTarget;
@@ -88,7 +75,7 @@ async function runTests() {
             currentSymbol: unit.currentSymbol,
             carry: unit.carry,
             hasCollapsed: unit.hasCollapsed,
-            pushesLength: unit.pushesLength
+            pushesLength: unit.pushesLength || 0
           })),
           numberLength: state.numberLength,
           activeUnitTarget: state.activeUnitTarget

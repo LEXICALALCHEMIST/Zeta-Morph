@@ -1,5 +1,6 @@
 import { SYMBOL_SEQUENCE, VOID_SYMBOL } from '../core/sacred9.js';
 import KeyMaker from '../key/keyMaker.js';
+import Snapshot from '../MorphLogic/snapshot.js';
 
 console.log('unit1.js loaded');
 
@@ -38,9 +39,9 @@ export default class Unit1 {
         );
         
         if (this.skeleton) {
-          const currentNumber = parseInt(this.skeleton.units.slice(0, this.skeleton.numberLength).map(u => SYMBOL_SEQUENCE.indexOf(u.state.currentSymbol)).join('') || '0', 10);
+          const currentNumber = parseInt(this.skeleton.units.slice(0, this.skeleton.state.numberLength).map(u => SYMBOL_SEQUENCE.indexOf(u.state.currentSymbol)).join('') || '0', 10);
           const newNumber = currentNumber; // No extra +1, carry handled by cascade
-          this.skeleton.resetSnapshot(newNumber);
+          Snapshot.reset(this.skeleton, newNumber);
           
           const keyMaker = new KeyMaker();
           const newKey = keyMaker.makeKey(newNumber);

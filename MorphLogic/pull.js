@@ -1,4 +1,5 @@
 import { morphInit } from '../core/morphInit.js';
+import Snapshot2 from '../MorphLogic/snapshot2.js';
 import { SYMBOL_SEQUENCE, VOID_SYMBOL } from '../core/sacred9.js';
 
 export default class Pull {
@@ -9,7 +10,7 @@ export default class Pull {
   async pull(keyNumber) {
     console.log(`Applying pull for ${keyNumber}`);
     
-    const currentSkeletonNumber = parseInt(this.skeleton.units.slice(0, this.skeleton.numberLength).map(u => SYMBOL_SEQUENCE.indexOf(u.state.currentSymbol)).join('') || '0', 10);
+    const currentSkeletonNumber = parseInt(this.skeleton.units.slice(0, this.skeleton.state.numberLength).map(u => SYMBOL_SEQUENCE.indexOf(u.state.currentSymbol)).join('') || '0', 10);
     
     // Use morphInit to determine skeleton and key
     const { skeleton, key } = await morphInit(keyNumber, currentSkeletonNumber);
@@ -33,9 +34,9 @@ export default class Pull {
           unit.pull(numValue, this.skeleton.carryBus);
           if (this.skeleton.carryBus.carryValue < 0 && unitIndex === 0) {
             console.log(`Unit1 borrow triggered, resetting snapshot`);
-            const currentNumber = parseInt(this.skeleton.units.slice(0, this.skeleton.numberLength).map(u => SYMBOL_SEQUENCE.indexOf(u.state.currentSymbol)).join('') || '0', 10);
+            const currentNumber = parseInt(this.skeleton.units.slice(0, this.skeleton.state.numberLength).map(u => SYMBOL_SEQUENCE.indexOf(u.state.currentSymbol)).join('') || '0', 10);
             const newNumber = currentNumber - numValue;
-            await this.skeleton.resetSnapshot(newNumber);
+            await Snapshot2.reset(this.skeleton, newNumber);
             break;
           }
         } else if (currentSymbol !== VOID_SYMBOL) {
@@ -54,7 +55,7 @@ export default class Pull {
     });
     
     const finalState = this.skeleton.getState();
-    const skeletonDisplay = `<${finalState.units.slice(0, 3).map(u => u.currentSymbol).join('')}|${finalState.units.slice(3, 6).map(u => u.currentSymbol).join('')}|⊉⊉⊉>`;
+    const skeletonDisplay = `<${finalState.units.slice(0, 3).map(u => u.currentSymbol).join('')}|${finalState.units.slice(3, 6).map(u => u.currentSymbol).join('')}|⊙⊙⊙>`;
     console.log(`Final Skeleton: ${skeletonDisplay}`);
     return finalState;
   }

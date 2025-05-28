@@ -4,35 +4,39 @@ export default class ShiftKey {
   shift(key, targetLength) {
     console.log(`Shifting key for ${key.number} to targetLength: ${targetLength}`);
     
-    if (targetLength < 1 || targetLength > 6) {
-      throw new Error('Target length must be between 1 and 6');
-    }
-    
     const oldPush = key.push;
     console.log(`Shifting key: Old: PUSH[${oldPush.join(', ')}]`);
     
-    const newPush = Array(targetLength).fill().map((_, i) => `U${i + 1}:null`);
-    const newView = Array(targetLength).fill(VOID_SYMBOL);
-    
-    const digits = key.number.toString().split('').map(Number);
-    const startIndex = Math.max(0, targetLength - digits.length);
-    
-    for (let i = 0; i < digits.length && startIndex + i < targetLength; i++) {
-      const unit = `U${startIndex + i + 1}`;
-      newPush[startIndex + i] = `${unit}:${digits[i]}`;
-      newView[startIndex + i] = SYMBOL_SEQUENCE[digits[i]];
+    // Default targetLength to key.length if undefined
+    const effectiveTargetLength = targetLength !== undefined ? targetLength : key.length;
+    if (targetLength === undefined) {
+      console.warn(`Warning: targetLength undefined, defaulting to key.length=${key.length}`);
     }
     
-    const newKey = {
+    const newPush = Array(effectiveTargetLength).fill('null').map((_, i) => {
+      const oldIndex = i - (effectiveTargetLength - key.length);
+      if (oldIndex >= 0 && oldIndex < oldPush.length && oldPush[oldIndex] !== `U${oldIndex + 1}:null`) {
+        return `U${i + 1}:${oldPush[oldIndex].split(':')[1]}`; // Preserve value, update unit
+      }
+      return `U${i + 1}:null`;
+    });
+    
+    const newView = newPush.map(entry => {
+      if (entry.includes('null')) return VOID_SYMBOL; // Use ⊙
+      const [, value] = entry.split(':');
+      return SYMBOL_SEQUENCE[parseInt(value)] || VOID_SYMBOL;
+    });
+    
+    const shiftedKey = {
       number: key.number,
       length: key.length,
-      targetLength,
+      targetLength: effectiveTargetLength,
       push: newPush,
       view: newView,
-      targetUnit: `u${targetLength}`
+      targetUnit: `u${effectiveTargetLength}`
     };
     
     console.log(`Shifting key: New: PUSH[${newPush.join(', ')}]`);
-    return newKey;
+    return shiftedKey;
   }
 }

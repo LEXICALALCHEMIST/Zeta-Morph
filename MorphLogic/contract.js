@@ -1,44 +1,65 @@
+import { morphInit } from '../core/morphInit.js';
+import Snapshot2 from '../MorphLogic/snapshot2.js';
 import { SYMBOL_SEQUENCE, VOID_SYMBOL } from '../core/sacred9.js';
 
 export default class Contract {
-  contract(skeleton, borrowValue, remainder, borrowingUnit) {
-    console.log(`CONTRACT Start: borrowValue=${borrowValue}, remainder=${remainder}, borrowingUnit=${borrowingUnit ? borrowingUnit.state.label : 'none'}`);
+  constructor(skeleton) {
+    this.skeleton = skeleton;
+  }
+
+  async contract(keyNumber) {
+    console.log(`Applying contraction for ${keyNumber}`);
     
-    const units = skeleton.units;
-    const oldNumberLength = skeleton.numberLength || 1;
-    const newNumberLength = Math.max(oldNumberLength - 1, 1);
-    console.log(`CONTRACT: oldNumberLength=${oldNumberLength}, newNumberLength=${newNumberLength}`);
+    const currentSkeletonNumber = parseInt(this.skeleton.units.slice(0, this.skeleton.state.numberLength).map(u => SYMBOL_SEQUENCE.indexOf(u.state.currentSymbol)).join('') || '0', 10);
     
-    const newSymbols = Array(units.length).fill(VOID_SYMBOL);
-    if (newNumberLength >= 1) {
-      newSymbols[0] = SYMBOL_SEQUENCE[remainder]; // Unit1 to remainder (9 → ▲)
-      console.log(`CONTRACT: Setting Unit1 to ${SYMBOL_SEQUENCE[remainder]} (remainder=${remainder})`);
-      if (newNumberLength > 1) {
-        newSymbols[1] = SYMBOL_SEQUENCE[remainder]; // Unit2 to remainder (9 → ▲)
-        console.log(`CONTRACT: Setting Unit2 to ${SYMBOL_SEQUENCE[remainder]} (remainder=${remainder})`);
+    // Use morphInit to determine skeleton and key
+    const { skeleton, key } = await morphInit(keyNumber, currentSkeletonNumber);
+    this.skeleton = skeleton;
+    const units = this.skeleton.units;
+    
+    // Apply the shifted key for subtraction
+    for (let i = 0; i < key.push.length && i < units.length; i++) {
+      const pushEntry = key.push[i];
+      const [unitName, value] = pushEntry.split(':');
+      const unitIndex = parseInt(unitName.replace('U', '')) - 1;
+      const unit = units[unitIndex];
+      const position = `u${unitIndex + 1}`;
+      
+      const currentSymbol = unit.state && unit.state.currentSymbol ? unit.state.currentSymbol : VOID_SYMBOL;
+      
+      if (value !== 'null') {
+        const numValue = parseInt(value);
+        if (numValue > 0) {
+          console.log(`Pulling ${unitName}-${position}: ${numValue}`);
+          unit.pull(numValue, this.skeleton.carryBus);
+          if (this.skeleton.carryBus.carryValue < 0 && unitIndex === 0) {
+            console.log(`Unit1 borrow triggered, resetting snapshot`);
+            const currentNumber = parseInt(this.skeleton.units.slice(0, this.skeleton.state.numberLength).map(u => SYMBOL_SEQUENCE.indexOf(u.state.currentSymbol)).join('') || '0', 10);
+            const newNumber = currentNumber - numValue;
+            await Snapshot2.reset(this.skeleton, newNumber);
+            break;
+          }
+        } else if (currentSymbol === VOID_SYMBOL) {
+          console.log(`Setting ${unitName}-${position}: 0 (no pull)`);
+          unit.state.currentSymbol = SYMBOL_SEQUENCE[0];
+        } else {
+          console.log(`Preserving ${unitName}-${position}: ${currentSymbol} (no pull)`);
+        }
+      } else {
+        console.log(`Skipping ${unitName}-${position}: null`);
       }
     }
     
-    units.forEach((unit, i) => {
-      if (unit === borrowingUnit) {
-        console.log(`CONTRACT: Clearing borrowing unit ${unit.state.label} to VOID_SYMBOL`);
-        unit.state.currentSymbol = VOID_SYMBOL;
-      } else {
-        console.log(`CONTRACT: Setting Unit${i + 1} to ${newSymbols[i]}`);
-        unit.state.currentSymbol = newSymbols[i];
+    units.forEach(unit => {
+      if (unit.state && unit.state.pushes) {
+        unit.state.pushes = [];
+        unit.state.pushesLength = 0;
       }
-      unit.state.carry = 0;
-      unit.state.hasCollapsed = false;
-      unit.state.pushes = [];
-      unit.state.pushesLength = 0;
     });
     
-    skeleton.numberLength = newNumberLength;
-    skeleton.activeUnitTarget = `u${newNumberLength}`;
-    
-    const state = skeleton.getState();
-    console.log(`CONTRACT End: New Skeleton: <${state.units.map(u => u.currentSymbol).join('')}|⊙⊙⊙|⊙⊙⊙>`);
-    
-    return state;
+    const finalState = this.skeleton.getState();
+    const skeletonDisplay = `<${finalState.units.slice(0, 3).map(u => u.currentSymbol).join('')}|${finalState.units.slice(3, 6).map(u => u.currentSymbol).join('')}|⊙⊙⊙>`;
+    console.log(`Final Skeleton: ${skeletonDisplay}`);
+    return finalState;
   }
 }
