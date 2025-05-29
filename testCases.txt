@@ -317,3 +317,136 @@ Expected: {
 }
 Result: PASS
 --- 
+
+CURRENT 
+testPush.js
+import SkeletonInitializer from '../MorphLogic/SkeletonInitializer.js';
+import PushModule from '../MorphLogic/PushModule.js';
+import { SYMBOL_SEQUENCE, VOID_SYMBOL } from '../core/SacredSymbols.js';
+
+console.log('NUEROM PROTOCOL - PUSH TEST');
+
+const tests = [
+  {
+    description: 'Set skeleton to 500 and push 50 (with carry propagation)',
+    operation: { initialSkeleton: 500, pushValue: 50 },
+    expected: {
+      units: [
+        { currentSymbol: SYMBOL_SEQUENCE[5] },  // U1: ■ (5)
+        { currentSymbol: SYMBOL_SEQUENCE[5] },  // U2: ■ (5)
+        { currentSymbol: SYMBOL_SEQUENCE[0] },  // U3: ⚙ (0)
+        { currentSymbol: VOID_SYMBOL },         // U4: ⊙
+        { currentSymbol: VOID_SYMBOL },         // U5: ⊙
+        { currentSymbol: VOID_SYMBOL },         // U6: ⊙
+        { currentSymbol: VOID_SYMBOL },         // U7: ⊙
+        { currentSymbol: VOID_SYMBOL },         // U8: ⊙
+        { currentSymbol: VOID_SYMBOL },         // U9: ⊙
+        { currentSymbol: VOID_SYMBOL },         // U10: ⊙
+        { currentSymbol: VOID_SYMBOL },         // U11: ⊙
+        { currentSymbol: VOID_SYMBOL }          // U12: ⊙
+      ],
+      numberLength: 3,
+      activeUnitTarget: 'u3'
+    }
+  }
+];
+
+async function runTests() {
+  for (let index = 0; index < tests.length; index++) {
+    const test = tests[index];
+    console.log(`Test Case ${index + 1}: ${test.description}`);
+    
+    try {
+      console.log('Starting push operation');
+      
+      // Initialize skeleton
+      const skeleton = new SkeletonInitializer();
+      await skeleton.set(test.operation.initialSkeleton, true); // Push operation
+      
+      // Apply push
+      const pushModule = new PushModule(skeleton);
+      const state = await pushModule.push(test.operation.pushValue);
+      
+      // Assert expected state
+      const passed = 
+        state.units.every((unit, i) => 
+          unit.currentSymbol === test.expected.units[i].currentSymbol
+        ) &&
+        state.numberLength === test.expected.numberLength &&
+        state.activeUnitTarget === test.expected.activeUnitTarget;
+      
+      console.log(`Result: ${passed ? 'PASS' : 'FAIL'}`);
+      if (!passed) {
+        console.log(`Mismatch: Got ${JSON.stringify({
+          units: state.units.map(unit => ({ currentSymbol: unit.currentSymbol })),
+          numberLength: state.numberLength,
+          activeUnitTarget: state.activeUnitTarget
+        })}, Expected: ${JSON.stringify(test.expected)}`);
+      }
+      
+    } catch (error) {
+      console.error(`Test Case ${index + 1} failed:`, error.message);
+    }
+    console.log('---');
+  }
+}
+
+runTests();
+
+RESULTS -> 
+Exporting VOID_SYMBOL: ⊙
+NUEROM PROTOCOL - PUSH TEST
+Test Case 1: Set skeleton to 500 and push 50 (with carry propagation)
+Starting push operation
+Using static import for unitExtensionsPush.js
+Setting skeleton for 500
+Setting unit1 to 5
+Set unit1 to 5 (symbol: ■)
+Setting unit2 to 0
+Set unit2 to 0 (symbol: ⚙)
+Setting unit3 to 0
+Set unit3 to 0 (symbol: ⚙)
+Snapshot: {"units":["■","⚙","⚙","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙"],"numberLength":3,"activeUnitTarget":"u3"}
+Skeleton: <■⚙⚙⊙|⊙⊙⊙⊙|⊙⊙⊙⊙>
+Applying push for 50
+morphInit(50, 500)
+Using static import for unitExtensionsPush.js
+Setting skeleton for 500
+Setting unit1 to 5
+Set unit1 to 5 (symbol: ■)
+Setting unit2 to 0
+Set unit2 to 0 (symbol: ⚙)
+Setting unit3 to 0
+Set unit3 to 0 (symbol: ⚙)
+Snapshot: {"units":["■","⚙","⚙","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙"],"numberLength":3,"activeUnitTarget":"u3"}
+Skeleton: <■⚙⚙⊙|⊙⊙⊙⊙|⊙⊙⊙⊙>
+Generating key for 50
+KEY:50 LENGTH:2 PUSH[U1:5 U2:0 U3:null U4:null U5:null U6:null U7:null U8:null U9:null U10:null U11:null U12:null] VIEW:■|⚙|⊙|⊙|⊙|⊙|⊙|⊙|⊙|⊙|⊙|⊙
+Shifting key for 50 to targetLength: 3
+Shifting key: Old: PUSH[U1:5, U2:0, U3:null, U4:null, U5:null, U6:null, U7:null, U8:null, U9:null, U10:null, U11:null, U12:null]
+Shifting key: New: PUSH[U1:null, U2:5, U3:0, U4:null, U5:null, U6:null, U7:null, U8:null, U9:null, U10:null, U11:null, U12:null]
+morphInit: 50 length 2, 500 length 3: if current is < new number 50, set skeleton for: 500, genKEY for: 50, new skeleton: <■⚙⚙⊙|⊙⊙⊙⊙|⊙⊙⊙⊙>, new key: {"number":50,"length":2,"targetLength":3,"push":["U1:null","U2:5","U3:0","U4:null","U5:null","U6:null","U7:null","U8:null","U9:null","U10:null","U11:null","U12:null"],"view":["⊙","■","⚙","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙"],"targetUnit":"u3"}
+Skipping U1-u1: null
+Pushing U2-u2: 5
+unit2 Push Start: times=5, currentSymbol=⚙
+unit2 Push: SYMBOL: ● CARRY: 0 DIRECTION: 1
+unit2 Push: SYMBOL: ○ CARRY: 0 DIRECTION: 1
+unit2 Push: SYMBOL: □ CARRY: 0 DIRECTION: 1
+unit2 Push: SYMBOL: ¤ CARRY: 0 DIRECTION: 1
+unit2 Push: SYMBOL: ■ CARRY: 0 DIRECTION: 1
+unit2 Push End: pushesLength=5
+Preserving U3-u3: ⚙ (no push)
+Skipping U4-u4: null
+Skipping U5-u5: null
+Skipping U6-u6: null
+Skipping U7-u7: null
+Skipping U8-u8: null
+Skipping U9-u9: null
+Skipping U10-u10: null
+Skipping U11-u11: null
+Skipping U12-u12: null
+Final Skeleton (after carry propagation): <■■⚙⊙|⊙⊙⊙⊙|⊙⊙⊙⊙>
+Result: PASS
+---
+PS C:\Users\hopea\OneDrive\Desktop\ZetaMorph\test> 
+

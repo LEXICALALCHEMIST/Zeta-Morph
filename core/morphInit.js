@@ -3,7 +3,7 @@ import KeyMaker from '../key/KeyMaker.js';
 import ShiftKey from '../key/ShiftKey.js';
 import { SYMBOL_SEQUENCE, VOID_SYMBOL } from './SacredSymbols.js';
 
-export async function morphInit(newNumber, currentSkeletonNumber) {
+export async function morphInit(newNumber, currentSkeletonNumber, isPushOperation = true) {
   console.log(`morphInit(${newNumber}, ${currentSkeletonNumber})`);
   
   const newNumberLength = newNumber.toString().length;
@@ -22,7 +22,7 @@ export async function morphInit(newNumber, currentSkeletonNumber) {
   
   // Set skeleton
   const skeleton = new SkeletonInitializer();
-  await skeleton.set(setNumber);
+  await skeleton.set(setNumber, isPushOperation);
   
   // Ensure numberLength is set
   if (!skeleton.state.numberLength) {

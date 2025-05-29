@@ -24,7 +24,7 @@ async function runTests() {
       console.log(`Ecosystem: ${JSON.stringify(ecosystem)}`);
       
       // Use MorphInit to set skeleton and key
-      const { skeleton, key } = await morphInit(test.operation.sendRequest, test.operation.currentSkeleton);
+      const { skeleton, key } = await morphInit(test.operation.sendRequest, test.operation.currentSkeleton, true); // Push operation
       
       // Log results
       const skeletonState = skeleton.getState();

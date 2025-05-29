@@ -1,4 +1,4 @@
-import { extendUnits } from '../skeleton/unitExtensions.js';
+import { extendUnits } from '../skeleton/unitExtensionsPush.js'; // Static import for debugging
 import CarryBus from '../core/carryBus.js';
 import { SYMBOL_SEQUENCE, VOID_SYMBOL } from '../core/SacredSymbols.js';
 
@@ -13,28 +13,36 @@ export default class SkeletonInitializer {
     };
   }
 
-  async init() {
-    const { Unit1, Unit2, Unit3, Unit4, Unit5, Unit6, Unit7, Unit8, Unit9, Unit10, Unit11, Unit12 } = await extendUnits();
-    this.units = [
-      new Unit1(),
-      new Unit2(),
-      new Unit3(),
-      new Unit4(),
-      new Unit5(),
-      new Unit6(),
-      new Unit7(),
-      new Unit8(),
-      new Unit9(),
-      new Unit10(),
-      new Unit11(),
-      new Unit12()
-    ];
-    this.carryBus = new CarryBus();
-    this.units.forEach(unit => { unit.skeleton = this; });
+  async init(isPushOperation = true) {
+    try {
+      // Temporarily using static import to debug
+      console.log('Using static import for unitExtensionsPush.js');
+      const { Unit1, Unit2, Unit3, Unit4, Unit5, Unit6, Unit7, Unit8, Unit9, Unit10, Unit11, Unit12 } = await extendUnits();
+      
+      this.units = [
+        new Unit1(),
+        new Unit2(),
+        new Unit3(),
+        new Unit4(),
+        new Unit5(),
+        new Unit6(),
+        new Unit7(),
+        new Unit8(),
+        new Unit9(),
+        new Unit10(),
+        new Unit11(),
+        new Unit12()
+      ];
+      this.carryBus = new CarryBus();
+      this.units.forEach(unit => { unit.skeleton = this; });
+    } catch (error) {
+      console.error('Error in init:', error);
+      throw error;
+    }
   }
 
-  async set(number) {
-    await this.init();
+  async set(number, isPushOperation = true) {
+    await this.init(isPushOperation);
     console.log(`Setting skeleton for ${number}`);
     
     if (number < 0 || number > 999999999999) {

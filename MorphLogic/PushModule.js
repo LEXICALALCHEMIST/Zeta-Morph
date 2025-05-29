@@ -1,22 +1,22 @@
-import { morphInit } from '../core/morphInit.js';
-import { SYMBOL_SEQUENCE, VOID_SYMBOL } from '../core/sacred9.js';
+import { morphInit } from '../core/MorphInit.js';
+import { SYMBOL_SEQUENCE, VOID_SYMBOL } from '../core/SacredSymbols.js';
 
-export default class Add {
+export default class PushModule {
   constructor(skeleton) {
     this.skeleton = skeleton;
   }
 
-  async add(keyNumber) {
-    console.log(`Applying addition for ${keyNumber}`);
+  async push(keyNumber) {
+    console.log(`Applying push for ${keyNumber}`);
     
-    const currentSkeletonNumber = parseInt(this.skeleton.units.slice(0, this.skeleton.numberLength).map(u => SYMBOL_SEQUENCE.indexOf(u.state.currentSymbol)).join('') || '0', 10);
+    const currentSkeletonNumber = parseInt(this.skeleton.units.slice(0, this.skeleton.state.numberLength).map(u => SYMBOL_SEQUENCE.indexOf(u.state.currentSymbol)).join('') || '0', 10);
     
-    // Use morphInit to determine skeleton and key
-    const { skeleton, key } = await morphInit(keyNumber, currentSkeletonNumber);
+    // Use MorphInit to determine skeleton and key
+    const { skeleton, key } = await morphInit(keyNumber, currentSkeletonNumber, true);
     this.skeleton = skeleton;
     const units = this.skeleton.units;
     
-    // Apply the shifted key
+    // Apply the shifted key for pushing
     for (let i = 0; i < key.push.length && i < units.length; i++) {
       const pushEntry = key.push[i];
       const [unitName, value] = pushEntry.split(':');
@@ -31,6 +31,7 @@ export default class Add {
         if (numValue > 0) {
           console.log(`Pushing ${unitName}-${position}: ${numValue}`);
           unit.push(numValue, this.skeleton.carryBus);
+          // Propagate carries
           while (this.skeleton.carryBus.carryValue > 0) {
             const { carryValue, carryTarget } = this.skeleton.carryBus.flushCarry();
             const targetIndex = parseInt(carryTarget.replace('Unit', '')) - 1;
@@ -39,10 +40,7 @@ export default class Add {
               units[targetIndex].push(carryValue, this.skeleton.carryBus);
             }
           }
-        } else if (currentSymbol === VOID_SYMBOL) {
-          console.log(`Setting ${unitName}-${position}: 0 (no push)`);
-          unit.state.currentSymbol = SYMBOL_SEQUENCE[0];
-        } else {
+        } else if (currentSymbol !== VOID_SYMBOL) {
           console.log(`Preserving ${unitName}-${position}: ${currentSymbol} (no push)`);
         }
       } else {
@@ -58,8 +56,8 @@ export default class Add {
     });
     
     const finalState = this.skeleton.getState();
-    const skeletonDisplay = `<${finalState.units.slice(0, 3).map(u => u.currentSymbol).join('')}|${finalState.units.slice(3, 6).map(u => u.currentSymbol).join('')}|⊉⊉⊉>`;
-    console.log(`Final Skeleton: ${skeletonDisplay}`);
+    const skeletonDisplay = `<${finalState.units.slice(0, 4).map(u => u.currentSymbol).join('')}|${finalState.units.slice(4, 8).map(u => u.currentSymbol).join('')}|${finalState.units.slice(8, 12).map(u => u.currentSymbol).join('')}>`;
+    console.log(`Final Skeleton (after carry propagation): ${skeletonDisplay}`);
     return finalState;
   }
 }
