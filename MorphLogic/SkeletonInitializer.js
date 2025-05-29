@@ -1,9 +1,8 @@
 import { extendUnits } from '../skeleton/unitExtensions.js';
 import CarryBus from '../core/carryBus.js';
-import Snapshot from './snapshot.js';
-import { SYMBOL_SEQUENCE, VOID_SYMBOL } from '../core/sacred9.js';
+import { SYMBOL_SEQUENCE, VOID_SYMBOL } from '../core/SacredSymbols.js';
 
-export default class SetSkeleton {
+export default class SkeletonInitializer {
   constructor() {
     this.units = [];
     this.carryBus = null;
@@ -15,14 +14,20 @@ export default class SetSkeleton {
   }
 
   async init() {
-    const { Unit1, Unit2, Unit3, Unit4, Unit5, Unit6 } = await extendUnits();
+    const { Unit1, Unit2, Unit3, Unit4, Unit5, Unit6, Unit7, Unit8, Unit9, Unit10, Unit11, Unit12 } = await extendUnits();
     this.units = [
       new Unit1(),
       new Unit2(),
       new Unit3(),
       new Unit4(),
       new Unit5(),
-      new Unit6()
+      new Unit6(),
+      new Unit7(),
+      new Unit8(),
+      new Unit9(),
+      new Unit10(),
+      new Unit11(),
+      new Unit12()
     ];
     this.carryBus = new CarryBus();
     this.units.forEach(unit => { unit.skeleton = this; });
@@ -32,8 +37,8 @@ export default class SetSkeleton {
     await this.init();
     console.log(`Setting skeleton for ${number}`);
     
-    if (number < 0 || number > 999999) {
-      throw new Error('Number must be between 0 and 999,999');
+    if (number < 0 || number > 999999999999) {
+      throw new Error('Number must be between 0 and 999,999,999,999');
     }
     
     const digits = number.toString().split('').map(Number);
@@ -59,7 +64,7 @@ export default class SetSkeleton {
     
     const state = this.getState();
     this.state.snapshot = JSON.parse(JSON.stringify(state)); // Deep copy snapshot
-    const skeleton = `<${state.units.slice(0, 3).map(u => u.currentSymbol).join('')}|${state.units.slice(3, 6).map(u => u.currentSymbol).join('')}|⊙⊙⊙>`;
+    const skeleton = `<${state.units.slice(0, 4).map(u => u.currentSymbol).join('')}|${state.units.slice(4, 8).map(u => u.currentSymbol).join('')}|${state.units.slice(8, 12).map(u => u.currentSymbol).join('')}>`;
     console.log(`Snapshot: ${JSON.stringify({
       units: state.units.map(u => u.currentSymbol),
       numberLength: state.numberLength,
@@ -67,10 +72,6 @@ export default class SetSkeleton {
     })}`);
     console.log(`Skeleton: ${skeleton}`);
     return state;
-  }
-
-  async resetSnapshot(number) {
-    return await Snapshot.reset(this, number);
   }
 
   getState() {

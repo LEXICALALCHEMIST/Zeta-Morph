@@ -1,6 +1,6 @@
-import { SYMBOL_SEQUENCE, VOID_SYMBOL } from '../core/sacred9.js';
+import { SYMBOL_SEQUENCE, VOID_SYMBOL } from '../core/SacredSymbols.js';
 
-export default class Snapshot2 {
+export class Snapshot2 {
   static async reset(skeleton, number) {
     console.log(`Resetting skeleton snapshot for ${number}`);
     

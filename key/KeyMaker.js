@@ -1,30 +1,21 @@
-import { SYMBOL_SEQUENCE, VOID_SYMBOL } from '../core/sacred9.js';
+import { SYMBOL_SEQUENCE, VOID_SYMBOL } from '../core/SacredSymbols.js';
 
 export default class KeyMaker {
   makeKey(number) {
     console.log(`Generating key for ${number}`);
     
-    if (number < 0 || number > 999999) {
-      throw new Error('Number must be between 0 and 999999');
-    }
-    
     const digits = number.toString().split('').map(Number);
     const length = digits.length;
-    
-    const push = [];
-    const view = [];
-    
-    for (let i = 0; i < 6; i++) {
+    const push = Array(12).fill(null).map((_, i) => {
       const digit = digits[i];
-      const unit = `U${i + 1}`;
-      if (digit !== undefined) {
-        push.push(`${unit}:${digit}`);
-        view.push(SYMBOL_SEQUENCE[digit]);
-      } else {
-        push.push(`${unit}:null`);
-        view.push(VOID_SYMBOL);
-      }
-    }
+      return digit !== undefined ? `U${i + 1}:${digit}` : `U${i + 1}:null`;
+    });
+    
+    const view = push.map(entry => {
+      if (entry.includes('null')) return VOID_SYMBOL;
+      const [, value] = entry.split(':');
+      return SYMBOL_SEQUENCE[parseInt(value)] || VOID_SYMBOL;
+    });
     
     const key = {
       number,
@@ -33,7 +24,7 @@ export default class KeyMaker {
       view
     };
     
-    console.log(`KEY:${key.number} LENGTH:${key.length} PUSH[${key.push.join(' ')}] VIEW:${key.view.join('|')}`);
+    console.log(`KEY:${number} LENGTH:${length} PUSH[${push.join(' ')}] VIEW:${view.join('|')}`);
     return key;
   }
 }
