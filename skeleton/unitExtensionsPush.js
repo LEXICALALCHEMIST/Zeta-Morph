@@ -24,7 +24,7 @@ export async function extendUnits() {
       for (let i = 0; i < count; i++) {
         currentIndex = (currentIndex + 1);
         if (currentIndex >= SYMBOL_SEQUENCE.length - 1) {
-          this.state.currentSymbol = SYMBOL_SEQUENCE[currentIndex]; // Set to ♤ temporarily
+          this.state.currentSymbol = SYMBOL_SEQUENCE[0]; // Reset to 0 (⚙)
           this.state.carry = 1;
           this.state.hasCollapsed = true;
           this.state.u1Collapse = true;
@@ -34,7 +34,7 @@ export async function extendUnits() {
           console.log(
             `unit1 Carry: CARRY: ${this.state.carry} COLLAPSED: ${this.state.hasCollapsed} U1COLLAPSE: ${this.state.u1Collapse}`
           );
-          // Not propagating carry yet
+          carryBus.registerCarry(this.state.carry, `Unit${this.unitNumber - 1}`);
         } else {
           this.state.currentSymbol = SYMBOL_SEQUENCE[currentIndex];
           console.log(
@@ -60,7 +60,7 @@ export async function extendUnits() {
       for (let i = 0; i < count; i++) {
         currentIndex = (currentIndex + 1);
         if (currentIndex >= SYMBOL_SEQUENCE.length - 1) {
-          this.state.currentSymbol = SYMBOL_SEQUENCE[currentIndex]; // Set to ♤ temporarily
+          this.state.currentSymbol = SYMBOL_SEQUENCE[0]; // Reset to 0 (⚙)
           this.state.carry = 1;
           this.state.hasCollapsed = true;
           console.log(
@@ -69,7 +69,7 @@ export async function extendUnits() {
           console.log(
             `unit2 Carry: CARRY: ${this.state.carry} COLLAPSED: ${this.state.hasCollapsed}`
           );
-          // Not propagating carry yet
+          carryBus.registerCarry(this.state.carry, `Unit${this.unitNumber - 1}`);
         } else {
           this.state.currentSymbol = SYMBOL_SEQUENCE[currentIndex];
           console.log(
@@ -95,7 +95,7 @@ export async function extendUnits() {
       for (let i = 0; i < count; i++) {
         currentIndex = (currentIndex + 1);
         if (currentIndex >= SYMBOL_SEQUENCE.length - 1) {
-          this.state.currentSymbol = SYMBOL_SEQUENCE[currentIndex]; // Set to ♤ temporarily
+          this.state.currentSymbol = SYMBOL_SEQUENCE[0]; // Reset to 0 (⚙)
           this.state.carry = 1;
           this.state.hasCollapsed = true;
           console.log(
@@ -104,7 +104,7 @@ export async function extendUnits() {
           console.log(
             `unit3 Carry: CARRY: ${this.state.carry} COLLAPSED: ${this.state.hasCollapsed}`
           );
-          // Not propagating carry yet
+          carryBus.registerCarry(this.state.carry, `Unit${this.unitNumber - 1}`);
         } else {
           this.state.currentSymbol = SYMBOL_SEQUENCE[currentIndex];
           console.log(
@@ -130,7 +130,7 @@ export async function extendUnits() {
       for (let i = 0; i < count; i++) {
         currentIndex = (currentIndex + 1);
         if (currentIndex >= SYMBOL_SEQUENCE.length - 1) {
-          this.state.currentSymbol = SYMBOL_SEQUENCE[currentIndex]; // Set to ♤ temporarily
+          this.state.currentSymbol = SYMBOL_SEQUENCE[0]; // Reset to 0 (⚙)
           this.state.carry = 1;
           this.state.hasCollapsed = true;
           console.log(
@@ -139,7 +139,7 @@ export async function extendUnits() {
           console.log(
             `unit4 Carry: CARRY: ${this.state.carry} COLLAPSED: ${this.state.hasCollapsed}`
           );
-          // Not propagating carry yet
+          carryBus.registerCarry(this.state.carry, `Unit${this.unitNumber - 1}`);
         } else {
           this.state.currentSymbol = SYMBOL_SEQUENCE[currentIndex];
           console.log(
@@ -165,7 +165,7 @@ export async function extendUnits() {
       for (let i = 0; i < count; i++) {
         currentIndex = (currentIndex + 1);
         if (currentIndex >= SYMBOL_SEQUENCE.length - 1) {
-          this.state.currentSymbol = SYMBOL_SEQUENCE[currentIndex]; // Set to ♤ temporarily
+          this.state.currentSymbol = SYMBOL_SEQUENCE[0]; // Reset to 0 (⚙)
           this.state.carry = 1;
           this.state.hasCollapsed = true;
           console.log(
@@ -174,7 +174,7 @@ export async function extendUnits() {
           console.log(
             `unit5 Carry: CARRY: ${this.state.carry} COLLAPSED: ${this.state.hasCollapsed}`
           );
-          // Not propagating carry yet
+          carryBus.registerCarry(this.state.carry, `Unit${this.unitNumber - 1}`);
         } else {
           this.state.currentSymbol = SYMBOL_SEQUENCE[currentIndex];
           console.log(
@@ -200,7 +200,7 @@ export async function extendUnits() {
       for (let i = 0; i < count; i++) {
         currentIndex = (currentIndex + 1);
         if (currentIndex >= SYMBOL_SEQUENCE.length - 1) {
-          this.state.currentSymbol = SYMBOL_SEQUENCE[currentIndex]; // Set to ♤ temporarily
+          this.state.currentSymbol = SYMBOL_SEQUENCE[0]; // Reset to 0 (⚙)
           this.state.carry = 1;
           this.state.hasCollapsed = true;
           console.log(
@@ -209,7 +209,7 @@ export async function extendUnits() {
           console.log(
             `unit6 Carry: CARRY: ${this.state.carry} COLLAPSED: ${this.state.hasCollapsed}`
           );
-          // Not propagating carry yet
+          carryBus.registerCarry(this.state.carry, `Unit${this.unitNumber - 1}`);
         } else {
           this.state.currentSymbol = SYMBOL_SEQUENCE[currentIndex];
           console.log(
@@ -235,7 +235,7 @@ export async function extendUnits() {
       for (let i = 0; i < count; i++) {
         currentIndex = (currentIndex + 1);
         if (currentIndex >= SYMBOL_SEQUENCE.length - 1) {
-          this.state.currentSymbol = SYMBOL_SEQUENCE[currentIndex]; // Set to ♤ temporarily
+          this.state.currentSymbol = SYMBOL_SEQUENCE[0]; // Reset to 0 (⚙)
           this.state.carry = 1;
           this.state.hasCollapsed = true;
           console.log(
@@ -244,7 +244,7 @@ export async function extendUnits() {
           console.log(
             `unit7 Carry: CARRY: ${this.state.carry} COLLAPSED: ${this.state.hasCollapsed}`
           );
-          // Not propagating carry yet
+          carryBus.registerCarry(this.state.carry, `Unit${this.unitNumber - 1}`);
         } else {
           this.state.currentSymbol = SYMBOL_SEQUENCE[currentIndex];
           console.log(
@@ -270,7 +270,7 @@ export async function extendUnits() {
       for (let i = 0; i < count; i++) {
         currentIndex = (currentIndex + 1);
         if (currentIndex >= SYMBOL_SEQUENCE.length - 1) {
-          this.state.currentSymbol = SYMBOL_SEQUENCE[currentIndex]; // Set to ♤ temporarily
+          this.state.currentSymbol = SYMBOL_SEQUENCE[0]; // Reset to 0 (⚙)
           this.state.carry = 1;
           this.state.hasCollapsed = true;
           console.log(
@@ -279,7 +279,7 @@ export async function extendUnits() {
           console.log(
             `unit8 Carry: CARRY: ${this.state.carry} COLLAPSED: ${this.state.hasCollapsed}`
           );
-          // Not propagating carry yet
+          carryBus.registerCarry(this.state.carry, `Unit${this.unitNumber - 1}`);
         } else {
           this.state.currentSymbol = SYMBOL_SEQUENCE[currentIndex];
           console.log(
@@ -305,7 +305,7 @@ export async function extendUnits() {
       for (let i = 0; i < count; i++) {
         currentIndex = (currentIndex + 1);
         if (currentIndex >= SYMBOL_SEQUENCE.length - 1) {
-          this.state.currentSymbol = SYMBOL_SEQUENCE[currentIndex]; // Set to ♤ temporarily
+          this.state.currentSymbol = SYMBOL_SEQUENCE[0]; // Reset to 0 (⚙)
           this.state.carry = 1;
           this.state.hasCollapsed = true;
           console.log(
@@ -314,7 +314,7 @@ export async function extendUnits() {
           console.log(
             `unit9 Carry: CARRY: ${this.state.carry} COLLAPSED: ${this.state.hasCollapsed}`
           );
-          // Not propagating carry yet
+          carryBus.registerCarry(this.state.carry, `Unit${this.unitNumber - 1}`);
         } else {
           this.state.currentSymbol = SYMBOL_SEQUENCE[currentIndex];
           console.log(
@@ -340,7 +340,7 @@ export async function extendUnits() {
       for (let i = 0; i < count; i++) {
         currentIndex = (currentIndex + 1);
         if (currentIndex >= SYMBOL_SEQUENCE.length - 1) {
-          this.state.currentSymbol = SYMBOL_SEQUENCE[currentIndex]; // Set to ♤ temporarily
+          this.state.currentSymbol = SYMBOL_SEQUENCE[0]; // Reset to 0 (⚙)
           this.state.carry = 1;
           this.state.hasCollapsed = true;
           console.log(
@@ -349,7 +349,7 @@ export async function extendUnits() {
           console.log(
             `unit10 Carry: CARRY: ${this.state.carry} COLLAPSED: ${this.state.hasCollapsed}`
           );
-          // Not propagating carry yet
+          carryBus.registerCarry(this.state.carry, `Unit${this.unitNumber - 1}`);
         } else {
           this.state.currentSymbol = SYMBOL_SEQUENCE[currentIndex];
           console.log(
@@ -375,7 +375,7 @@ export async function extendUnits() {
       for (let i = 0; i < count; i++) {
         currentIndex = (currentIndex + 1);
         if (currentIndex >= SYMBOL_SEQUENCE.length - 1) {
-          this.state.currentSymbol = SYMBOL_SEQUENCE[currentIndex]; // Set to ♤ temporarily
+          this.state.currentSymbol = SYMBOL_SEQUENCE[0]; // Reset to 0 (⚙)
           this.state.carry = 1;
           this.state.hasCollapsed = true;
           console.log(
@@ -384,7 +384,7 @@ export async function extendUnits() {
           console.log(
             `unit11 Carry: CARRY: ${this.state.carry} COLLAPSED: ${this.state.hasCollapsed}`
           );
-          // Not propagating carry yet
+          carryBus.registerCarry(this.state.carry, `Unit${this.unitNumber - 1}`);
         } else {
           this.state.currentSymbol = SYMBOL_SEQUENCE[currentIndex];
           console.log(
@@ -410,7 +410,7 @@ export async function extendUnits() {
       for (let i = 0; i < count; i++) {
         currentIndex = (currentIndex + 1);
         if (currentIndex >= SYMBOL_SEQUENCE.length - 1) {
-          this.state.currentSymbol = SYMBOL_SEQUENCE[currentIndex]; // Set to ♤ temporarily
+          this.state.currentSymbol = SYMBOL_SEQUENCE[0]; // Reset to 0 (⚙)
           this.state.carry = 1;
           this.state.hasCollapsed = true;
           console.log(
@@ -419,7 +419,7 @@ export async function extendUnits() {
           console.log(
             `unit12 Carry: CARRY: ${this.state.carry} COLLAPSED: ${this.state.hasCollapsed}`
           );
-          // Not propagating carry yet
+          carryBus.registerCarry(this.state.carry, `Unit${this.unitNumber - 1}`);
         } else {
           this.state.currentSymbol = SYMBOL_SEQUENCE[currentIndex];
           console.log(
