@@ -1,4 +1,5 @@
-import { extendUnits } from '../skeleton/unitExtensionsPush.js'; // Static import for debugging
+import { extendUnits as extendUnitsPush } from '../skeleton/unitExtensionsPush.js';
+import { extendUnits as extendUnitsPull } from '../skeleton/unitExtensionsPull.js';
 import CarryBus from '../core/carryBus.js';
 import { SYMBOL_SEQUENCE, VOID_SYMBOL } from '../core/SacredSymbols.js';
 
@@ -15,9 +16,9 @@ export default class SkeletonInitializer {
 
   async init(isPushOperation = true) {
     try {
-      // Temporarily using static import to debug
-      console.log('Using static import for unitExtensionsPush.js');
-      const { Unit1, Unit2, Unit3, Unit4, Unit5, Unit6, Unit7, Unit8, Unit9, Unit10, Unit11, Unit12 } = await extendUnits();
+      const extendUnitsModule = isPushOperation ? extendUnitsPush : extendUnitsPull;
+      console.log(`Using static import for ${isPushOperation ? 'unitExtensionsPush.js' : 'unitExtensionsPull.js'}`);
+      const { Unit1, Unit2, Unit3, Unit4, Unit5, Unit6, Unit7, Unit8, Unit9, Unit10, Unit11, Unit12 } = await extendUnitsModule();
       
       this.units = [
         new Unit1(),
@@ -59,6 +60,7 @@ export default class SkeletonInitializer {
       unit.state.hasCollapsed = false;
       unit.state.pushes = [];
       unit.state.pushesLength = 0;
+      unit.state.u1Collapse = false;
       
       const digit = digits[i];
       if (digit !== undefined) {
