@@ -1,3 +1,4 @@
+Snapshot
 Exporting VOID_SYMBOL: ⊙
 unit1.js loaded
 --- ZLME Snapshot Test Suite ---
@@ -316,10 +317,9 @@ Expected: {
   activeUnitTarget: 'u6'
 }
 Result: PASS
---- 
-
-CURRENT 
+---
 testPush.js
+---
 import SkeletonInitializer from '../MorphLogic/SkeletonInitializer.js';
 import PushModule from '../MorphLogic/PushModule.js';
 import { SYMBOL_SEQUENCE, VOID_SYMBOL } from '../core/SacredSymbols.js';
@@ -334,6 +334,50 @@ const tests = [
       units: [
         { currentSymbol: SYMBOL_SEQUENCE[5] },  // U1: ■ (5)
         { currentSymbol: SYMBOL_SEQUENCE[5] },  // U2: ■ (5)
+        { currentSymbol: SYMBOL_SEQUENCE[0] },  // U3: ⚙ (0)
+        { currentSymbol: VOID_SYMBOL },         // U4: ⊙
+        { currentSymbol: VOID_SYMBOL },         // U5: ⊙
+        { currentSymbol: VOID_SYMBOL },         // U6: ⊙
+        { currentSymbol: VOID_SYMBOL },         // U7: ⊙
+        { currentSymbol: VOID_SYMBOL },         // U8: ⊙
+        { currentSymbol: VOID_SYMBOL },         // U9: ⊙
+        { currentSymbol: VOID_SYMBOL },         // U10: ⊙
+        { currentSymbol: VOID_SYMBOL },         // U11: ⊙
+        { currentSymbol: VOID_SYMBOL }          // U12: ⊙
+      ],
+      numberLength: 3,
+      activeUnitTarget: 'u3'
+    }
+  },
+  {
+    description: 'Set skeleton to 5059 and push 12 (test carry propagation, no expansion)',
+    operation: { initialSkeleton: 5059, pushValue: 12 },
+    expected: {
+      units: [
+        { currentSymbol: SYMBOL_SEQUENCE[5] },  // U1: ■ (5)
+        { currentSymbol: SYMBOL_SEQUENCE[0] },  // U2: ⚙ (0)
+        { currentSymbol: SYMBOL_SEQUENCE[7] },  // U3: ◙ (7)
+        { currentSymbol: SYMBOL_SEQUENCE[1] },  // U4: ● (1)
+        { currentSymbol: VOID_SYMBOL },         // U5: ⊙
+        { currentSymbol: VOID_SYMBOL },         // U6: ⊙
+        { currentSymbol: VOID_SYMBOL },         // U7: ⊙
+        { currentSymbol: VOID_SYMBOL },         // U8: ⊙
+        { currentSymbol: VOID_SYMBOL },         // U9: ⊙
+        { currentSymbol: VOID_SYMBOL },         // U10: ⊙
+        { currentSymbol: VOID_SYMBOL },         // U11: ⊙
+        { currentSymbol: VOID_SYMBOL }          // U12: ⊙
+      ],
+      numberLength: 4,
+      activeUnitTarget: 'u4'
+    }
+  },
+  {
+    description: 'Set skeleton to 99 and push 1 (test U1 snapshot expansion)',
+    operation: { initialSkeleton: 99, pushValue: 1 },
+    expected: {
+      units: [
+        { currentSymbol: SYMBOL_SEQUENCE[1] },  // U1: ● (1)
+        { currentSymbol: SYMBOL_SEQUENCE[0] },  // U2: ⚙ (0)
         { currentSymbol: SYMBOL_SEQUENCE[0] },  // U3: ⚙ (0)
         { currentSymbol: VOID_SYMBOL },         // U4: ⊙
         { currentSymbol: VOID_SYMBOL },         // U5: ⊙
@@ -392,8 +436,9 @@ async function runTests() {
 }
 
 runTests();
-
+---
 RESULTS -> 
+PS C:\Users\hopea\OneDrive\Desktop\ZetaMorph\test> node testPush.js
 Exporting VOID_SYMBOL: ⊙
 NUEROM PROTOCOL - PUSH TEST
 Test Case 1: Set skeleton to 500 and push 50 (with carry propagation)
@@ -445,8 +490,405 @@ Skipping U9-u9: null
 Skipping U10-u10: null
 Skipping U11-u11: null
 Skipping U12-u12: null
-Final Skeleton (after carry propagation): <■■⚙⊙|⊙⊙⊙⊙|⊙⊙⊙⊙>
+U1 has not collapsed (u1Collapse: false), skipping snapshot push
+Computed new skeleton number: 550
+U1 did not collapse, resetting skeleton to computed number: 550
+Resetting unit1 to 5
+Reset unit1 to 5 (symbol: ■)
+Resetting unit2 to 5
+Reset unit2 to 5 (symbol: ■)
+Resetting unit3 to 0
+Reset unit3 to 0 (symbol: ⚙)
+Snapshot: {"units":["■","■","⚙","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙"],"numberLength":3,"activeUnitTarget":"u3"}
+Reset Skeleton: <■■⚙⊙|⊙⊙⊙⊙|⊙⊙⊙⊙>
+Final Skeleton (after snapshot reset): <■■⚙⊙|⊙⊙⊙⊙|⊙⊙⊙⊙>
 Result: PASS
 ---
-PS C:\Users\hopea\OneDrive\Desktop\ZetaMorph\test> 
+Test Case 2: Set skeleton to 5059 and push 12 (test carry propagation, no expansion)
+Starting push operation
+Using static import for unitExtensionsPush.js
+Setting skeleton for 5059
+Setting unit1 to 5
+Set unit1 to 5 (symbol: ■)
+Setting unit2 to 0
+Set unit2 to 0 (symbol: ⚙)
+Setting unit3 to 5
+Set unit3 to 5 (symbol: ■)
+Setting unit4 to 9
+Set unit4 to 9 (symbol: ▲)
+Snapshot: {"units":["■","⚙","■","▲","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙"],"numberLength":4,"activeUnitTarget":"u4"}
+Skeleton: <■⚙■▲|⊙⊙⊙⊙|⊙⊙⊙⊙>
+Applying push for 12
+morphInit(12, 5059)
+Using static import for unitExtensionsPush.js
+Setting skeleton for 5059
+Setting unit1 to 5
+Set unit1 to 5 (symbol: ■)
+Setting unit2 to 0
+Set unit2 to 0 (symbol: ⚙)
+Setting unit3 to 5
+Set unit3 to 5 (symbol: ■)
+Setting unit4 to 9
+Set unit4 to 9 (symbol: ▲)
+Snapshot: {"units":["■","⚙","■","▲","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙"],"numberLength":4,"activeUnitTarget":"u4"}
+Skeleton: <■⚙■▲|⊙⊙⊙⊙|⊙⊙⊙⊙>
+Generating key for 12
+KEY:12 LENGTH:2 PUSH[U1:1 U2:2 U3:null U4:null U5:null U6:null U7:null U8:null U9:null U10:null U11:null U12:null] VIEW:●|○|⊙|⊙|⊙|⊙|⊙|⊙|⊙|⊙|⊙|⊙
+Shifting key for 12 to targetLength: 4
+Shifting key: Old: PUSH[U1:1, U2:2, U3:null, U4:null, U5:null, U6:null, U7:null, U8:null, U9:null, U10:null, U11:null, U12:null]
+Shifting key: New: PUSH[U1:null, U2:null, U3:1, U4:2, U5:null, U6:null, U7:null, U8:null, U9:null, U10:null, U11:null, U12:null]
+morphInit: 12 length 2, 5059 length 4: if current is < new number 12, set skeleton for: 5059, genKEY for: 12, new skeleton: <■⚙■▲|⊙⊙⊙⊙|⊙⊙⊙⊙>, new key: {"number":12,"length":2,"targetLength":4,"push":["U1:null","U2:null","U3:1","U4:2","U5:null","U6:null","U7:null","U8:null","U9:null","U10:null","U11:null","U12:null"],"view":["⊙","⊙","●","○","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙"],"targetUnit":"u4"}
+Skipping U1-u1: null
+Skipping U2-u2: null
+Pushing U3-u3: 1
+unit3 Push Start: times=1, currentSymbol=■
+unit3 Push: SYMBOL: • CARRY: 0 DIRECTION: 1
+unit3 Push End: pushesLength=1
+Pushing U4-u4: 2
+unit4 Push Start: times=2, currentSymbol=▲
+unit4 Push: SYMBOL: ⚙ CARRY: 1 DIRECTION: 1
+unit4 Carry: CARRY: 1 COLLAPSED: true
+CarryBus: Registered CARRY: 1 to Unit3
+unit4 Push: SYMBOL: ⚙ CARRY: 1 DIRECTION: 1
+unit4 Carry: CARRY: 1 COLLAPSED: true
+CarryBus: Registered CARRY: 1 to Unit3
+unit4 Push End: pushesLength=2
+CarryBus: Flushed CARRY: 1 to Unit3
+Carry applied to Unit3: 1
+unit3 Push Start: times=1, currentSymbol=•
+unit3 Push: SYMBOL: ¥ CARRY: 0 DIRECTION: 1
+unit3 Push End: pushesLength=2
+Skipping U5-u5: null
+Skipping U6-u6: null
+Skipping U7-u7: null
+Skipping U8-u8: null
+Skipping U9-u9: null
+Skipping U10-u10: null
+Skipping U11-u11: null
+Skipping U12-u12: null
+U1 has not collapsed (u1Collapse: false), skipping snapshot push
+Computed new skeleton number: 5071
+U1 did not collapse, resetting skeleton to computed number: 5071
+Resetting unit1 to 5
+Reset unit1 to 5 (symbol: ■)
+Resetting unit2 to 0
+Reset unit2 to 0 (symbol: ⚙)
+Resetting unit3 to 7
+Reset unit3 to 7 (symbol: ¥)
+Resetting unit4 to 1
+Reset unit4 to 1 (symbol: ●)
+Snapshot: {"units":["■","⚙","¥","●","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙"],"numberLength":4,"activeUnitTarget":"u4"}
+Reset Skeleton: <■⚙¥●|⊙⊙⊙⊙|⊙⊙⊙⊙>
+Final Skeleton (after snapshot reset): <■⚙¥●|⊙⊙⊙⊙|⊙⊙⊙⊙>
+Result: PASS
+---
+Test Case 3: Set skeleton to 99 and push 1 (test U1 snapshot expansion)
+Starting push operation
+Using static import for unitExtensionsPush.js
+Setting skeleton for 99
+Setting unit1 to 9
+Set unit1 to 9 (symbol: ▲)
+Setting unit2 to 9
+Set unit2 to 9 (symbol: ▲)
+Snapshot: {"units":["▲","▲","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙"],"numberLength":2,"activeUnitTarget":"u2"}
+Skeleton: <▲▲⊙⊙|⊙⊙⊙⊙|⊙⊙⊙⊙>
+Applying push for 1
+morphInit(1, 99)
+Using static import for unitExtensionsPush.js
+Setting skeleton for 99
+Setting unit1 to 9
+Set unit1 to 9 (symbol: ▲)
+Setting unit2 to 9
+Set unit2 to 9 (symbol: ▲)
+Snapshot: {"units":["▲","▲","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙"],"numberLength":2,"activeUnitTarget":"u2"}
+Skeleton: <▲▲⊙⊙|⊙⊙⊙⊙|⊙⊙⊙⊙>
+Generating key for 1
+KEY:1 LENGTH:1 PUSH[U1:1 U2:null U3:null U4:null U5:null U6:null U7:null U8:null U9:null U10:null U11:null U12:null] VIEW:●|⊙|⊙|⊙|⊙|⊙|⊙|⊙|⊙|⊙|⊙|⊙
+Shifting key for 1 to targetLength: 2
+Shifting key: Old: PUSH[U1:1, U2:null, U3:null, U4:null, U5:null, U6:null, U7:null, U8:null, U9:null, U10:null, U11:null, U12:null]
+Shifting key: New: PUSH[U1:null, U2:1, U3:null, U4:null, U5:null, U6:null, U7:null, U8:null, U9:null, U10:null, U11:null, U12:null]
+morphInit: 1 length 1, 99 length 2: if current is < new number 1, set skeleton for: 99, genKEY for: 1, new skeleton: <▲▲⊙⊙|⊙⊙⊙⊙|⊙⊙⊙⊙>, new key: {"number":1,"length":1,"targetLength":2,"push":["U1:null","U2:1","U3:null","U4:null","U5:null","U6:null","U7:null","U8:null","U9:null","U10:null","U11:null","U12:null"],"view":["⊙","●","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙"],"targetUnit":"u2"}
+Skipping U1-u1: null
+Pushing U2-u2: 1
+unit2 Push Start: times=1, currentSymbol=▲
+unit2 Push: SYMBOL: ⚙ CARRY: 1 DIRECTION: 1
+unit2 Carry: CARRY: 1 COLLAPSED: true
+CarryBus: Registered CARRY: 1 to Unit1
+unit2 Push End: pushesLength=1
+CarryBus: Flushed CARRY: 1 to Unit1
+Carry applied to Unit1: 1
+unit1 Push Start: times=1, currentSymbol=▲
+unit1 Push: SYMBOL: ⚙ CARRY: 1 DIRECTION: 1
+unit1 Carry: CARRY: 1 COLLAPSED: true U1COLLAPSE: true
+CarryBus: Registered CARRY: 1 to Unit0
+unit1 Push End: pushesLength=1
+CarryBus: Flushed CARRY: 1 to Unit0
+Skipping U3-u3: null
+Skipping U4-u4: null
+Skipping U5-u5: null
+Skipping U6-u6: null
+Skipping U7-u7: null
+Skipping U8-u8: null
+Skipping U9-u9: null
+Skipping U10-u10: null
+Skipping U11-u11: null
+Skipping U12-u12: null
+U1 has collapsed (u1Collapse: true), triggering snapshot push for new number: 100
+Resetting unit1 to 1
+Reset unit1 to 1 (symbol: ●)
+Resetting unit2 to 0
+Reset unit2 to 0 (symbol: ⚙)
+Resetting unit3 to 0
+Reset unit3 to 0 (symbol: ⚙)
+Snapshot: {"units":["●","⚙","⚙","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙"],"numberLength":3,"activeUnitTarget":"u3"}
+Reset Skeleton: <●⚙⚙⊙|⊙⊙⊙⊙|⊙⊙⊙⊙>
+Computed new skeleton number: 100
+U1 did not collapse, resetting skeleton to computed number: 100
+Resetting unit1 to 1
+Reset unit1 to 1 (symbol: ●)
+Resetting unit2 to 0
+Reset unit2 to 0 (symbol: ⚙)
+Resetting unit3 to 0
+Reset unit3 to 0 (symbol: ⚙)
+Snapshot: {"units":["●","⚙","⚙","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙"],"numberLength":3,"activeUnitTarget":"u3"}
+Reset Skeleton: <●⚙⚙⊙|⊙⊙⊙⊙|⊙⊙⊙⊙>
+Final Skeleton (after snapshot reset): <●⚙⚙⊙|⊙⊙⊙⊙|⊙⊙⊙⊙>
+Result: PASS
+---
+testCarry.js
+---
+import SkeletonInitializer from '../MorphLogic/SkeletonInitializer.js';
+import PushModule from '../MorphLogic/PushModule.js';
+import { SYMBOL_SEQUENCE, VOID_SYMBOL } from '../core/SacredSymbols.js';
 
+console.log('NUEROM PROTOCOL - CARRY TEST');
+
+const tests = [
+  {
+    description: 'Set skeleton to 190 and push 10 (test carry propagation)',
+    operation: { initialSkeleton: 190, pushValue: 10 },
+    expected: {
+      units: [
+        { currentSymbol: SYMBOL_SEQUENCE[2] },  // U1: ○ (2)
+        { currentSymbol: SYMBOL_SEQUENCE[0] },  // U2: ⚙ (0)
+        { currentSymbol: SYMBOL_SEQUENCE[0] },  // U3: ⚙ (0)
+        { currentSymbol: VOID_SYMBOL },         // U4: ⊙
+        { currentSymbol: VOID_SYMBOL },         // U5: ⊙
+        { currentSymbol: VOID_SYMBOL },         // U6: ⊙
+        { currentSymbol: VOID_SYMBOL },         // U7: ⊙
+        { currentSymbol: VOID_SYMBOL },         // U8: ⊙
+        { currentSymbol: VOID_SYMBOL },         // U9: ⊙
+        { currentSymbol: VOID_SYMBOL },         // U10: ⊙
+        { currentSymbol: VOID_SYMBOL },         // U11: ⊙
+        { currentSymbol: VOID_SYMBOL }          // U12: ⊙
+      ],
+      numberLength: 3,
+      activeUnitTarget: 'u3'
+    }
+  },
+  {
+    description: 'Set skeleton to 1005 and push 5 (test carry propagation)',
+    operation: { initialSkeleton: 1005, pushValue: 5 },
+    expected: {
+      units: [
+        { currentSymbol: SYMBOL_SEQUENCE[1] },  // U1: ● (1)
+        { currentSymbol: SYMBOL_SEQUENCE[0] },  // U2: ⚙ (0)
+        { currentSymbol: SYMBOL_SEQUENCE[1] },  // U3: ● (1)
+        { currentSymbol: SYMBOL_SEQUENCE[0] },  // U4: ⚙ (0)
+        { currentSymbol: VOID_SYMBOL },         // U5: ⊙
+        { currentSymbol: VOID_SYMBOL },         // U6: ⊙
+        { currentSymbol: VOID_SYMBOL },         // U7: ⊙
+        { currentSymbol: VOID_SYMBOL },         // U8: ⊙
+        { currentSymbol: VOID_SYMBOL },         // U9: ⊙
+        { currentSymbol: VOID_SYMBOL },         // U10: ⊙
+        { currentSymbol: VOID_SYMBOL },         // U11: ⊙
+        { currentSymbol: VOID_SYMBOL }          // U12: ⊙
+      ],
+      numberLength: 4,
+      activeUnitTarget: 'u4'
+    }
+  },
+  {
+    description: 'Set skeleton to 100155 and push 5 (test carry propagation)',
+    operation: { initialSkeleton: 100155, pushValue: 5 },
+    expected: {
+      units: [
+        { currentSymbol: SYMBOL_SEQUENCE[1] },  // U1: ● (1)
+        { currentSymbol: SYMBOL_SEQUENCE[0] },  // U2: ⚙ (0)
+        { currentSymbol: SYMBOL_SEQUENCE[0] },  // U3: ⚙ (0)
+        { currentSymbol: SYMBOL_SEQUENCE[1] },  // U4: ● (1)
+        { currentSymbol: SYMBOL_SEQUENCE[6] },  // U5: • (6)
+        { currentSymbol: SYMBOL_SEQUENCE[0] },  // U6: ⚙ (0)
+        { currentSymbol: VOID_SYMBOL },         // U7: ⊙
+        { currentSymbol: VOID_SYMBOL },         // U8: ⊙
+        { currentSymbol: VOID_SYMBOL },         // U9: ⊙
+        { currentSymbol: VOID_SYMBOL },         // U10: ⊙
+        { currentSymbol: VOID_SYMBOL },         // U11: ⊙
+        { currentSymbol: VOID_SYMBOL }          // U12: ⊙
+      ],
+      numberLength: 6,
+      activeUnitTarget: 'u6'
+    }
+  },
+  {
+    description: 'Set skeleton to 199999 and push 1 (test multiple carry propagation)',
+    operation: { initialSkeleton: 199999, pushValue: 1 },
+    expected: {
+      units: [
+        { currentSymbol: SYMBOL_SEQUENCE[2] },  // U1: ○ (2)
+        { currentSymbol: SYMBOL_SEQUENCE[0] },  // U2: ⚙ (0)
+        { currentSymbol: SYMBOL_SEQUENCE[0] },  // U3: ⚙ (0)
+        { currentSymbol: SYMBOL_SEQUENCE[0] },  // U4: ⚙ (0)
+        { currentSymbol: SYMBOL_SEQUENCE[0] },  // U5: ⚙ (0)
+        { currentSymbol: SYMBOL_SEQUENCE[0] },  // U6: ⚙ (0)
+        { currentSymbol: VOID_SYMBOL },         // U7: ⊙
+        { currentSymbol: VOID_SYMBOL },         // U8: ⊙
+        { currentSymbol: VOID_SYMBOL },         // U9: ⊙
+        { currentSymbol: VOID_SYMBOL },         // U10: ⊙
+        { currentSymbol: VOID_SYMBOL },         // U11: ⊙
+        { currentSymbol: VOID_SYMBOL }          // U12: ⊙
+      ],
+      numberLength: 6,
+      activeUnitTarget: 'u6'
+    }
+  }
+];
+
+async function runTests() {
+  for (let index = 0; index < tests.length; index++) {
+    const test = tests[index];
+    console.log(`Test Case ${index + 1}: ${test.description}`);
+    
+    try {
+      console.log('Starting push operation');
+      
+      // Initialize skeleton
+      const skeleton = new SkeletonInitializer();
+      await skeleton.set(test.operation.initialSkeleton, true); // Push operation
+      
+      // Apply push
+      const pushModule = new PushModule(skeleton);
+      const state = await pushModule.push(test.operation.pushValue);
+      
+      // Assert expected state
+      const passed = 
+        state.units.every((unit, i) => 
+          unit.currentSymbol === test.expected.units[i].currentSymbol
+        ) &&
+        state.numberLength === test.expected.numberLength &&
+        state.activeUnitTarget === test.expected.activeUnitTarget;
+      
+      console.log(`Result: ${passed ? 'PASS' : 'FAIL'}`);
+      if (!passed) {
+        console.log(`Mismatch: Got ${JSON.stringify({
+          units: state.units.map(unit => ({ currentSymbol: unit.currentSymbol })),
+          numberLength: state.numberLength,
+          activeUnitTarget: state.activeUnitTarget
+        })}, Expected: ${JSON.stringify(test.expected)}`);
+      }
+      
+    } catch (error) {
+      console.error(`Test Case ${index + 1} failed:`, error.message);
+    }
+    console.log('---');
+  }
+}
+
+runTests();
+---
+RESULTS-->
+Test Case 4: Set skeleton to 199999 and push 1 (test multiple carry propagation)
+Starting push operation
+Using static import for unitExtensionsPush.js
+Setting skeleton for 199999
+Setting unit1 to 1
+Set unit1 to 1 (symbol: ●)
+Setting unit2 to 9
+Set unit2 to 9 (symbol: ▲)
+Setting unit3 to 9
+Set unit3 to 9 (symbol: ▲)
+Setting unit4 to 9
+Set unit4 to 9 (symbol: ▲)
+Setting unit5 to 9
+Set unit5 to 9 (symbol: ▲)
+Setting unit6 to 9
+Set unit6 to 9 (symbol: ▲)
+Snapshot: {"units":["●","▲","▲","▲","▲","▲","⊙","⊙","⊙","⊙","⊙","⊙"],"numberLength":6,"activeUnitTarget":"u6"}
+Skeleton: <●▲▲▲|▲▲⊙⊙|⊙⊙⊙⊙>
+Applying push for 1
+morphInit(1, 199999)
+Using static import for unitExtensionsPush.js
+Setting skeleton for 199999
+Setting unit1 to 1
+Set unit1 to 1 (symbol: ●)
+Setting unit2 to 9
+Set unit2 to 9 (symbol: ▲)
+Setting unit3 to 9
+Set unit3 to 9 (symbol: ▲)
+Setting unit4 to 9
+Set unit4 to 9 (symbol: ▲)
+Setting unit5 to 9
+Set unit5 to 9 (symbol: ▲)
+Setting unit6 to 9
+Set unit6 to 9 (symbol: ▲)
+Snapshot: {"units":["●","▲","▲","▲","▲","▲","⊙","⊙","⊙","⊙","⊙","⊙"],"numberLength":6,"activeUnitTarget":"u6"}
+Skeleton: <●▲▲▲|▲▲⊙⊙|⊙⊙⊙⊙>
+Generating key for 1
+KEY:1 LENGTH:1 PUSH[U1:1 U2:null U3:null U4:null U5:null U6:null U7:null U8:null U9:null U10:null U11:null U12:null] VIEW:●|⊙|⊙|⊙|⊙|⊙|⊙|⊙|⊙|⊙|⊙|⊙
+Shifting key for 1 to targetLength: 6
+Shifting key: Old: PUSH[U1:1, U2:null, U3:null, U4:null, U5:null, U6:null, U7:null, U8:null, U9:null, U10:null, U11:null, U12:null]
+Shifting key: New: PUSH[U1:null, U2:null, U3:null, U4:null, U5:null, U6:1, U7:null, U8:null, U9:null, U10:null, U11:null, U12:null]
+morphInit: 1 length 1, 199999 length 6: if current is < new number 1, set skeleton for: 199999, genKEY for: 1, new skeleton: <●▲▲▲|▲▲⊙⊙|⊙⊙⊙⊙>, new key: {"number":1,"length":1,"targetLength":6,"push":["U1:null","U2:null","U3:null","U4:null","U5:null","U6:1","U7:null","U8:null","U9:null","U10:null","U11:null","U12:null"],"view":["⊙","⊙","⊙","⊙","⊙","●","⊙","⊙","⊙","⊙","⊙","⊙"],"targetUnit":"u6"}
+Skipping U1-u1: null
+Skipping U2-u2: null
+Skipping U3-u3: null
+Skipping U4-u4: null
+Skipping U5-u5: null
+Pushing U6-u6: 1
+unit6 Push Start: times=1, currentSymbol=▲
+unit6 Push: SYMBOL: ⚙ CARRY: 1 DIRECTION: 1
+unit6 Carry: CARRY: 1 COLLAPSED: true
+CarryBus: Registered CARRY: 1 to Unit5
+unit6 Push End: pushesLength=1
+CarryBus: Flushed CARRY: 1 to Unit5
+Carry applied to Unit5: 1
+unit5 Push Start: times=1, currentSymbol=▲
+unit5 Push: SYMBOL: ⚙ CARRY: 1 DIRECTION: 1
+unit5 Carry: CARRY: 1 COLLAPSED: true
+CarryBus: Registered CARRY: 1 to Unit4
+unit5 Push End: pushesLength=1
+CarryBus: Flushed CARRY: 1 to Unit4
+Carry applied to Unit4: 1
+unit4 Push Start: times=1, currentSymbol=▲
+unit4 Push: SYMBOL: ⚙ CARRY: 1 DIRECTION: 1
+unit4 Carry: CARRY: 1 COLLAPSED: true
+CarryBus: Registered CARRY: 1 to Unit3
+unit4 Push End: pushesLength=1
+CarryBus: Flushed CARRY: 1 to Unit3
+Carry applied to Unit3: 1
+unit3 Push Start: times=1, currentSymbol=▲
+unit3 Push: SYMBOL: ⚙ CARRY: 1 DIRECTION: 1
+unit3 Carry: CARRY: 1 COLLAPSED: true
+CarryBus: Registered CARRY: 1 to Unit2
+unit3 Push End: pushesLength=1
+CarryBus: Flushed CARRY: 1 to Unit2
+Carry applied to Unit2: 1
+unit2 Push Start: times=1, currentSymbol=▲
+unit2 Push: SYMBOL: ⚙ CARRY: 1 DIRECTION: 1
+unit2 Carry: CARRY: 1 COLLAPSED: true
+CarryBus: Registered CARRY: 1 to Unit1
+unit2 Push End: pushesLength=1
+CarryBus: Flushed CARRY: 1 to Unit1
+Carry applied to Unit1: 1
+unit1 Push Start: times=1, currentSymbol=●
+unit1 Push: SYMBOL: ○ CARRY: 0 DIRECTION: 1
+unit1 Push End: pushesLength=1
+Skipping U7-u7: null
+Skipping U8-u8: null
+Skipping U9-u9: null
+Skipping U10-u10: null
+Skipping U11-u11: null
+Skipping U12-u12: null
+Final Skeleton (after carry propagation): <○⚙⚙⚙|⚙⚙⊙⊙|⊙⊙⊙⊙>
+Result: PASS
+---

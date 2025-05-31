@@ -1,4 +1,5 @@
 import { morphInit } from '../core/MorphInit.js';
+import { SnapshotPush } from './SnapshotPush.js';
 import { SYMBOL_SEQUENCE, VOID_SYMBOL } from '../core/SacredSymbols.js';
 
 export default class PushModule {
@@ -48,6 +49,48 @@ export default class PushModule {
       }
     }
     
+    // Check for U1 collapse and trigger snapPush if necessary
+    const newSkeletonNumber = currentSkeletonNumber + keyNumber;
+    await SnapshotPush.snapPush(this.skeleton, newSkeletonNumber);
+    
+    // Compute the new skeleton number for logging
+    console.log(`Computed new skeleton number: ${newSkeletonNumber}`);
+    
+    // If snapPush didn't reset the skeleton (u1Collapse was false), reset it to the computed number
+    const u1 = this.skeleton.units[0];
+    if (!u1.state.u1Collapse) {
+      console.log(`U1 did not collapse, resetting skeleton to computed number: ${newSkeletonNumber}`);
+      const digits = newSkeletonNumber.toString().split('').map(Number);
+      this.skeleton.state.numberLength = digits.length;
+      this.skeleton.state.activeUnitTarget = `u${this.skeleton.state.numberLength}`;
+
+      this.skeleton.units.forEach((unit, i) => {
+        unit.state.currentSymbol = VOID_SYMBOL;
+        unit.state.carry = 0;
+        unit.state.hasCollapsed = false;
+        unit.state.pushes = [];
+        unit.state.pushesLength = 0;
+        unit.state.u1Collapse = false;
+
+        const digit = digits[i];
+        if (digit !== undefined) {
+          console.log(`Resetting unit${i + 1} to ${digit}`);
+          unit.state.currentSymbol = SYMBOL_SEQUENCE[digit];
+          console.log(`Reset unit${i + 1} to ${digit} (symbol: ${SYMBOL_SEQUENCE[digit]})`);
+        }
+      });
+
+      const state = this.skeleton.getState();
+      this.skeleton.state.snapshot = JSON.parse(JSON.stringify(state)); // Deep copy snapshot
+      const skeletonDisplay = `<${state.units.slice(0, 4).map(u => u.currentSymbol).join('')}|${state.units.slice(4, 8).map(u => u.currentSymbol).join('')}|${state.units.slice(8, 12).map(u => u.currentSymbol).join('')}>`;
+      console.log(`Snapshot: ${JSON.stringify({
+        units: state.units.map(u => u.currentSymbol),
+        numberLength: state.numberLength,
+        activeUnitTarget: state.activeUnitTarget
+      })}`);
+      console.log(`Reset Skeleton: ${skeletonDisplay}`);
+    }
+    
     units.forEach(unit => {
       if (unit.state && unit.state.pushes) {
         unit.state.pushes = [];
@@ -57,7 +100,7 @@ export default class PushModule {
     
     const finalState = this.skeleton.getState();
     const skeletonDisplay = `<${finalState.units.slice(0, 4).map(u => u.currentSymbol).join('')}|${finalState.units.slice(4, 8).map(u => u.currentSymbol).join('')}|${finalState.units.slice(8, 12).map(u => u.currentSymbol).join('')}>`;
-    console.log(`Final Skeleton (after carry propagation): ${skeletonDisplay}`);
+    console.log(`Final Skeleton (after snapshot reset): ${skeletonDisplay}`);
     return finalState;
   }
 }

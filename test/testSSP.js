@@ -2,61 +2,17 @@ import SkeletonInitializer from '../MorphLogic/SkeletonInitializer.js';
 import PushModule from '../MorphLogic/PushModule.js';
 import { SYMBOL_SEQUENCE, VOID_SYMBOL } from '../core/SacredSymbols.js';
 
-console.log('NUEROM PROTOCOL - PUSH TEST');
+console.log('NUEROM PROTOCOL - SNAPSHOT PUSH TEST');
 
 const tests = [
   {
-    description: 'Set skeleton to 500 and push 50 (with carry propagation)',
-    operation: { initialSkeleton: 500, pushValue: 50 },
-    expected: {
-      units: [
-        { currentSymbol: SYMBOL_SEQUENCE[5] },  // U1: ■ (5)
-        { currentSymbol: SYMBOL_SEQUENCE[5] },  // U2: ■ (5)
-        { currentSymbol: SYMBOL_SEQUENCE[0] },  // U3: ⚙ (0)
-        { currentSymbol: VOID_SYMBOL },         // U4: ⊙
-        { currentSymbol: VOID_SYMBOL },         // U5: ⊙
-        { currentSymbol: VOID_SYMBOL },         // U6: ⊙
-        { currentSymbol: VOID_SYMBOL },         // U7: ⊙
-        { currentSymbol: VOID_SYMBOL },         // U8: ⊙
-        { currentSymbol: VOID_SYMBOL },         // U9: ⊙
-        { currentSymbol: VOID_SYMBOL },         // U10: ⊙
-        { currentSymbol: VOID_SYMBOL },         // U11: ⊙
-        { currentSymbol: VOID_SYMBOL }          // U12: ⊙
-      ],
-      numberLength: 3,
-      activeUnitTarget: 'u3'
-    }
-  },
-  {
-    description: 'Set skeleton to 5059 and push 12 (test carry propagation, no expansion)',
-    operation: { initialSkeleton: 5059, pushValue: 12 },
-    expected: {
-      units: [
-        { currentSymbol: SYMBOL_SEQUENCE[5] },  // U1: ■ (5)
-        { currentSymbol: SYMBOL_SEQUENCE[0] },  // U2: ⚙ (0)
-        { currentSymbol: SYMBOL_SEQUENCE[7] },  // U3: ◙ (7)
-        { currentSymbol: SYMBOL_SEQUENCE[1] },  // U4: ● (1)
-        { currentSymbol: VOID_SYMBOL },         // U5: ⊙
-        { currentSymbol: VOID_SYMBOL },         // U6: ⊙
-        { currentSymbol: VOID_SYMBOL },         // U7: ⊙
-        { currentSymbol: VOID_SYMBOL },         // U8: ⊙
-        { currentSymbol: VOID_SYMBOL },         // U9: ⊙
-        { currentSymbol: VOID_SYMBOL },         // U10: ⊙
-        { currentSymbol: VOID_SYMBOL },         // U11: ⊙
-        { currentSymbol: VOID_SYMBOL }          // U12: ⊙
-      ],
-      numberLength: 4,
-      activeUnitTarget: 'u4'
-    }
-  },
-  {
-    description: 'Set skeleton to 99 and push 1 (test U1 snapshot expansion)',
-    operation: { initialSkeleton: 99, pushValue: 1 },
+    description: 'Set skeleton to 9 and push 1 (test U1 snapshot expansion)',
+    operation: { initialSkeleton: 9, pushValue: 1 },
     expected: {
       units: [
         { currentSymbol: SYMBOL_SEQUENCE[1] },  // U1: ● (1)
         { currentSymbol: SYMBOL_SEQUENCE[0] },  // U2: ⚙ (0)
-        { currentSymbol: SYMBOL_SEQUENCE[0] },  // U3: ⚙ (0)
+        { currentSymbol: VOID_SYMBOL },         // U3: ⊙
         { currentSymbol: VOID_SYMBOL },         // U4: ⊙
         { currentSymbol: VOID_SYMBOL },         // U5: ⊙
         { currentSymbol: VOID_SYMBOL },         // U6: ⊙
@@ -67,8 +23,8 @@ const tests = [
         { currentSymbol: VOID_SYMBOL },         // U11: ⊙
         { currentSymbol: VOID_SYMBOL }          // U12: ⊙
       ],
-      numberLength: 3,
-      activeUnitTarget: 'u3'
+      numberLength: 2,
+      activeUnitTarget: 'u2'
     }
   }
 ];
@@ -85,7 +41,7 @@ async function runTests() {
       const skeleton = new SkeletonInitializer();
       await skeleton.set(test.operation.initialSkeleton, true); // Push operation
       
-      // Apply push
+      // Apply push (snapPush is now handled within PushModule.js)
       const pushModule = new PushModule(skeleton);
       const state = await pushModule.push(test.operation.pushValue);
       
