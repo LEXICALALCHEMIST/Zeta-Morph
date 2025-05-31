@@ -4,9 +4,9 @@ console.log('NUEROM PROTOCOL - SEND TEST');
 
 const tests = [
   {
-    description: 'Send number 5 to NUEROM',
-    input: 5,
-    expectedMorphCode: 'MORPHCODE: Intent: PUSH, value: 5'
+    description: 'Send number 5 to NUEROM with valid MORPH PIN',
+    input: { number: 5, morphPin: '◇◇●●' },
+    expectedMorphCode: 'MORPHCODE: Intent: PUSH, value: 5, MORPHPIN: ◇◇●●'
   }
 ];
 
@@ -16,8 +16,8 @@ async function runTests() {
     console.log(`Test Case ${index + 1}: ${test.description}`);
     
     try {
-      // Send the number via ZTRL
-      const result = send(test.input);
+      // Send the number via ZTRL with MORPH PIN
+      const result = send(test.input.number, test.input.morphPin);
       
       // Log the morph code
       console.log(result.morphCode);
