@@ -892,3 +892,189 @@ Skipping U12-u12: null
 Final Skeleton (after carry propagation): <○⚙⚙⚙|⚙⚙⊙⊙|⊙⊙⊙⊙>
 Result: PASS
 ---
+
+TESTPULL.JS
+
+PS C:\Users\hopea\OneDrive\Desktop\ZetaMorph\test> node testPull.js
+Exporting VOID_SYMBOL: ⊙
+NUEROM PROTOCOL - PULL TEST
+Test Case 1: Set skeleton to 9 and pull 3 (test pull operation)
+Starting pull operation
+Using static import for unitExtensionsPull.js
+Setting skeleton for 9
+Setting unit1 to 9
+Set unit1 to 9 (symbol: ▲)
+Snapshot: {"units":["▲","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙"],"numberLength":1,"activeUnitTarget":"u1"}
+Skeleton: <▲⊙⊙⊙|⊙⊙⊙⊙|⊙⊙⊙⊙>
+Applying pull for 3
+morphInit(3, 9)
+Using static import for unitExtensionsPull.js
+Setting skeleton for 9
+Setting unit1 to 9
+Set unit1 to 9 (symbol: ▲)
+Snapshot: {"units":["▲","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙"],"numberLength":1,"activeUnitTarget":"u1"}
+Skeleton: <▲⊙⊙⊙|⊙⊙⊙⊙|⊙⊙⊙⊙>
+Generating key for 3
+KEY:3 LENGTH:1 PUSH[U1:3 U2:null U3:null U4:null U5:null U6:null U7:null U8:null U9:null U10:null U11:null U12:null] VIEW:□|⊙|⊙|⊙|⊙|⊙|⊙|⊙|⊙|⊙|⊙|⊙
+Shifting key for 3 to targetLength: 1
+Shifting key: Old: PUSH[U1:3, U2:null, U3:null, U4:null, U5:null, U6:null, U7:null, U8:null, U9:null, U10:null, U11:null, U12:null]
+Shifting key: New: PUSH[U1:3, U2:null, U3:null, U4:null, U5:null, U6:null, U7:null, U8:null, U9:null, U10:null, U11:null, U12:null]
+morphInit: 3 length 1, 9 length 1: if current is < new number 3, set skeleton for: 9, genKEY for: 3, new skeleton: <▲⊙⊙⊙|⊙⊙⊙⊙|⊙⊙⊙⊙>, new key: {"number":3,"length":1,"targetLength":1,"push":["U1:3","U2:null","U3:null","U4:null","U5:null","U6:null","U7:null","U8:null","U9:null","U10:null","U11:null","U12:null"],"view":["□","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙"],"targetUnit":"u1"}
+Pulling U1-u1: 3
+unit1 Pull Start: times=3, currentSymbol=▲
+unit1 Pull: SYMBOL: ◇ CARRY: 0 DIRECTION: -1
+unit1 Pull: SYMBOL: ¥ CARRY: 0 DIRECTION: -1
+unit1 Pull: SYMBOL: • CARRY: 0 DIRECTION: -1
+unit1 Pull End: pushesLength=3
+Skipping U2-u2: null
+Skipping U3-u3: null
+Skipping U4-u4: null
+Skipping U5-u5: null
+Skipping U6-u6: null
+Skipping U7-u7: null
+Skipping U8-u8: null
+Skipping U9-u9: null
+Skipping U10-u10: null
+Skipping U11-u11: null
+Skipping U12-u12: null
+Computed new skeleton number: 6
+Resetting skeleton to computed number: 6
+Resetting unit1 to 6
+Reset unit1 to 6 (symbol: •)
+Snapshot: {"units":["•","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙"],"numberLength":1,"activeUnitTarget":"u1"}
+Reset Skeleton: <•⊙⊙⊙|⊙⊙⊙⊙|⊙⊙⊙⊙>
+Final Skeleton (after pull): <•⊙⊙⊙|⊙⊙⊙⊙|⊙⊙⊙⊙>
+Result: PASS
+---
+Test Case 2: Set skeleton to 3 and pull 9 (test snapshot pull on U1 collapse)
+Starting pull operation
+Using static import for unitExtensionsPull.js
+Setting skeleton for 3
+Setting unit1 to 3
+Set unit1 to 3 (symbol: □)
+Snapshot: {"units":["□","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙"],"numberLength":1,"activeUnitTarget":"u1"}
+Skeleton: <□⊙⊙⊙|⊙⊙⊙⊙|⊙⊙⊙⊙>
+Applying pull for 9
+morphInit(9, 3)
+Using static import for unitExtensionsPull.js
+Setting skeleton for 3
+Setting unit1 to 3
+Set unit1 to 3 (symbol: □)
+Snapshot: {"units":["□","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙"],"numberLength":1,"activeUnitTarget":"u1"}
+Skeleton: <□⊙⊙⊙|⊙⊙⊙⊙|⊙⊙⊙⊙>
+Generating key for 9
+KEY:9 LENGTH:1 PUSH[U1:9 U2:null U3:null U4:null U5:null U6:null U7:null U8:null U9:null U10:null U11:null U12:null] VIEW:▲|⊙|⊙|⊙|⊙|⊙|⊙|⊙|⊙|⊙|⊙|⊙
+Shifting key for 9 to targetLength: 1
+Shifting key: Old: PUSH[U1:9, U2:null, U3:null, U4:null, U5:null, U6:null, U7:null, U8:null, U9:null, U10:null, U11:null, U12:null]
+Shifting key: New: PUSH[U1:9, U2:null, U3:null, U4:null, U5:null, U6:null, U7:null, U8:null, U9:null, U10:null, U11:null, U12:null]
+morphInit: 9 length 1, 3 length 1: if current is < new number 9, set skeleton for: 3, genKEY for: 9, new skeleton: <□⊙⊙⊙|⊙⊙⊙⊙|⊙⊙⊙⊙>, new key: {"number":9,"length":1,"targetLength":1,"push":["U1:9","U2:null","U3:null","U4:null","U5:null","U6:null","U7:null","U8:null","U9:null","U10:null","U11:null","U12:null"],"view":["▲","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙"],"targetUnit":"u1"}
+Pulling U1-u1: 9
+unit1 Pull Start: times=9, currentSymbol=□
+unit1 Pull: SYMBOL: ○ CARRY: 0 DIRECTION: -1
+unit1 Pull: SYMBOL: ● CARRY: 0 DIRECTION: -1
+unit1 Pull: SYMBOL: ⚙ CARRY: 0 DIRECTION: -1
+unit1 Pull: SYMBOL: ♤ CARRY: -1 DIRECTION: -1
+unit1 Borrow: CARRY: -1 COLLAPSED: true U1COLLAPSE: true
+CarryBus: Registered CARRY: -1 to Unit0
+unit1 Pull: SYMBOL: ♤ CARRY: -1 DIRECTION: -1
+unit1 Borrow: CARRY: -1 COLLAPSED: true U1COLLAPSE: true
+CarryBus: Registered CARRY: -1 to Unit0
+unit1 Pull: SYMBOL: ♤ CARRY: -1 DIRECTION: -1
+unit1 Borrow: CARRY: -1 COLLAPSED: true U1COLLAPSE: true
+CarryBus: Registered CARRY: -1 to Unit0
+unit1 Pull: SYMBOL: ♤ CARRY: -1 DIRECTION: -1
+unit1 Borrow: CARRY: -1 COLLAPSED: true U1COLLAPSE: true
+CarryBus: Registered CARRY: -1 to Unit0
+unit1 Pull: SYMBOL: ♤ CARRY: -1 DIRECTION: -1
+unit1 Borrow: CARRY: -1 COLLAPSED: true U1COLLAPSE: true
+CarryBus: Registered CARRY: -1 to Unit0
+unit1 Pull: SYMBOL: ♤ CARRY: -1 DIRECTION: -1
+unit1 Borrow: CARRY: -1 COLLAPSED: true U1COLLAPSE: true
+CarryBus: Registered CARRY: -1 to Unit0
+unit1 Pull End: pushesLength=9
+CarryBus: Flushed CARRY: -1 to Unit0
+Skipping U2-u2: null
+Skipping U3-u3: null
+Skipping U4-u4: null
+Skipping U5-u5: null
+Skipping U6-u6: null
+Skipping U7-u7: null
+Skipping U8-u8: null
+Skipping U9-u9: null
+Skipping U10-u10: null
+Skipping U11-u11: null
+Skipping U12-u12: null
+Computed new skeleton number: 0
+Resetting skeleton to computed number: 0
+Resetting unit1 to 0
+Reset unit1 to 0 (symbol: ⚙)
+Snapshot: {"units":["⚙","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙"],"numberLength":1,"activeUnitTarget":"u1"}
+Reset Skeleton: <⚙⊙⊙⊙|⊙⊙⊙⊙|⊙⊙⊙⊙>
+Final Skeleton (after pull): <⚙⊙⊙⊙|⊙⊙⊙⊙|⊙⊙⊙⊙>
+Result: PASS
+---
+Test Case 3: Set skeleton to 10 and pull 1 (test contraction on pull)
+Starting pull operation
+Using static import for unitExtensionsPull.js
+Setting skeleton for 1001
+Setting unit1 to 1
+Set unit1 to 1 (symbol: ●)
+Setting unit2 to 0
+Set unit2 to 0 (symbol: ⚙)
+Setting unit3 to 0
+Set unit3 to 0 (symbol: ⚙)
+Setting unit4 to 1
+Set unit4 to 1 (symbol: ●)
+Snapshot: {"units":["●","⚙","⚙","●","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙"],"numberLength":4,"activeUnitTarget":"u4"}
+Skeleton: <●⚙⚙●|⊙⊙⊙⊙|⊙⊙⊙⊙>
+Applying pull for 1
+morphInit(1, 1001)
+Using static import for unitExtensionsPull.js
+Setting skeleton for 1001
+Setting unit1 to 1
+Set unit1 to 1 (symbol: ●)
+Setting unit2 to 0
+Set unit2 to 0 (symbol: ⚙)
+Setting unit3 to 0
+Set unit3 to 0 (symbol: ⚙)
+Setting unit4 to 1
+Set unit4 to 1 (symbol: ●)
+Snapshot: {"units":["●","⚙","⚙","●","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙"],"numberLength":4,"activeUnitTarget":"u4"}
+Skeleton: <●⚙⚙●|⊙⊙⊙⊙|⊙⊙⊙⊙>
+Generating key for 1
+KEY:1 LENGTH:1 PUSH[U1:1 U2:null U3:null U4:null U5:null U6:null U7:null U8:null U9:null U10:null U11:null U12:null] VIEW:●|⊙|⊙|⊙|⊙|⊙|⊙|⊙|⊙|⊙|⊙|⊙
+Shifting key for 1 to targetLength: 4
+Shifting key: Old: PUSH[U1:1, U2:null, U3:null, U4:null, U5:null, U6:null, U7:null, U8:null, U9:null, U10:null, U11:null, U12:null]
+Shifting key: New: PUSH[U1:null, U2:null, U3:null, U4:1, U5:null, U6:null, U7:null, U8:null, U9:null, U10:null, U11:null, U12:null]
+morphInit: 1 length 1, 1001 length 4: if current is < new number 1, set skeleton for: 1001, genKEY for: 1, new skeleton: <●⚙⚙●|⊙⊙⊙⊙|⊙⊙⊙⊙>, new key: {"number":1,"length":1,"targetLength":4,"push":["U1:null","U2:null","U3:null","U4:1","U5:null","U6:null","U7:null","U8:null","U9:null","U10:null","U11:null","U12:null"],"view":["⊙","⊙","⊙","●","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙"],"targetUnit":"u4"}
+Skipping U1-u1: null
+Skipping U2-u2: null
+Skipping U3-u3: null
+Pulling U4-u4: 1
+unit4 Pull Start: times=1, currentSymbol=●
+unit4 Pull: SYMBOL: ⚙ CARRY: 0 DIRECTION: -1
+unit4 Pull End: pushesLength=1
+Skipping U5-u5: null
+Skipping U6-u6: null
+Skipping U7-u7: null
+Skipping U8-u8: null
+Skipping U9-u9: null
+Skipping U10-u10: null
+Skipping U11-u11: null
+Skipping U12-u12: null
+Computed new skeleton number: 1000
+Resetting skeleton to computed number: 1000
+Resetting unit1 to 1
+Reset unit1 to 1 (symbol: ●)
+Resetting unit2 to 0
+Reset unit2 to 0 (symbol: ⚙)
+Resetting unit3 to 0
+Reset unit3 to 0 (symbol: ⚙)
+Resetting unit4 to 0
+Reset unit4 to 0 (symbol: ⚙)
+Snapshot: {"units":["●","⚙","⚙","⚙","⊙","⊙","⊙","⊙","⊙","⊙","⊙","⊙"],"numberLength":4,"activeUnitTarget":"u4"}
+Reset Skeleton: <●⚙⚙⚙|⊙⊙⊙⊙|⊙⊙⊙⊙>
+Final Skeleton (after pull): <●⚙⚙⚙|⊙⊙⊙⊙|⊙⊙⊙⊙>
+Result: PASS
+Mismatch: Got {"units":[{"currentSymbol":"●"},{"currentSymbol":"⚙"},{"currentSymbol":"⚙"},{"currentSymbol":"⚙"},{"currentSymbol":"⊙"},{"currentSymbol":"⊙"},{"currentSymbol":"⊙"},{"currentSymbol":"⊙"},{"currentSymbol":"⊙"},{"currentSymbol":"⊙"},{"currentSymbol":"⊙"},{"currentSymbol":"⊙"}],"numberLength":4,"activeUnitTarget":"u4"}, Expected: {"units":[{"currentSymbol":"▲"},{"currentSymbol":"⊙"},{"currentSymbol":"⊙"},{"currentSymbol":"⊙"},{"currentSymbol":"⊙"},{"currentSymbol":"⊙"},{"currentSymbol":"⊙"},{"currentSymbol":"⊙"},{"currentSymbol":"⊙"},{"currentSymbol":"⊙"},{"currentSymbol":"⊙"},{"currentSymbol":"⊙"}],"numberLength":1,"activeUnitTarget":"u1"}
+---
