@@ -1,4 +1,5 @@
 import { morphInit } from '../core/MorphInit.js';
+import { Shutter } from './shutter.js';
 import { SYMBOL_SEQUENCE, VOID_SYMBOL } from '../core/SacredSymbols.js';
 
 export default class PullModule {
@@ -48,49 +49,28 @@ export default class PullModule {
       }
     }
     
-    // Compute the new skeleton number for logging
+    // Compute the new skeleton number
     const newSkeletonNumber = Math.max(currentSkeletonNumber - keyNumber, 0);
     console.log(`Computed new skeleton number: ${newSkeletonNumber}`);
     
-    // Reset the skeleton to the computed number
-    console.log(`Resetting skeleton to computed number: ${newSkeletonNumber}`);
-    const digits = newSkeletonNumber.toString().split('').map(Number);
-    this.skeleton.state.numberLength = digits.length;
-    this.skeleton.state.activeUnitTarget = `u${this.skeleton.state.numberLength}`;
-
-    this.skeleton.units.forEach((unit, i) => {
-      unit.state.currentSymbol = VOID_SYMBOL;
-      unit.state.carry = 0;
-      unit.state.hasCollapsed = false;
-      unit.state.pushes = [];
-      unit.state.pushesLength = 0;
-      unit.state.u1Collapse = false;
-
-      const digit = digits[i];
-      if (digit !== undefined) {
-        console.log(`Resetting unit${i + 1} to ${digit}`);
-        unit.state.currentSymbol = SYMBOL_SEQUENCE[digit];
-        console.log(`Reset unit${i + 1} to ${digit} (symbol: ${SYMBOL_SEQUENCE[digit]})`);
-      }
-    });
-
-    const state = this.skeleton.getState();
-    this.skeleton.state.snapshot = JSON.parse(JSON.stringify(state)); // Deep copy snapshot
-    const skeletonDisplay = `<${state.units.slice(0, 4).map(u => u.currentSymbol).join('')}|${state.units.slice(4, 8).map(u => u.currentSymbol).join('')}|${state.units.slice(8, 12).map(u => u.currentSymbol).join('')}>`;
-    console.log(`Snapshot: ${JSON.stringify({
-      units: state.units.map(u => u.currentSymbol),
-      numberLength: state.numberLength,
-      activeUnitTarget: state.activeUnitTarget
-    })}`);
-    console.log(`Reset Skeleton: ${skeletonDisplay}`);
-    
+    // Clear all unit states and carryBus before snapshot to prevent extra pushes
     units.forEach(unit => {
-      if (unit.state && unit.state.pushes) {
+      if (unit.state) {
         unit.state.pushes = [];
         unit.state.pushesLength = 0;
+        unit.state.carry = 0;
+        unit.state.hasCollapsed = false;
+        unit.state.u1Collapse = false;
       }
     });
+    this.skeleton.carryBus.carryValue = 0;
+    this.skeleton.carryBus.carryTarget = null;
+    console.log('Cleared unit states and carryBus before snapshot');
     
+    // Snapshot the skeleton mid-morph to ensure consistency
+    this.skeleton = await Shutter.snapMidMorph(this.skeleton, newSkeletonNumber);
+    
+    // Return the final state after snapshot
     const finalState = this.skeleton.getState();
     const finalSkeletonDisplay = `<${finalState.units.slice(0, 4).map(u => u.currentSymbol).join('')}|${finalState.units.slice(4, 8).map(u => u.currentSymbol).join('')}|${finalState.units.slice(8, 12).map(u => u.currentSymbol).join('')}>`;
     console.log(`Final Skeleton (after pull): ${finalSkeletonDisplay}`);

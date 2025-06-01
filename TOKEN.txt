@@ -1634,20 +1634,78 @@ export async function receive(morphCode) {
 
 <<<MORPHCUBE>>>
 import { userDummy } from '../userTest/userDummy.js';
+import SkeletonInitializer from '../MorphLogic/SkeletonInitializer.js';
+import PullModule from '../MorphLogic/PullModule.js';
+import { SYMBOL_SEQUENCE } from '../core/SacredSymbols.js';
+
+console.log('MorphCube Initialized');
+console.log('Imported userDummy:', userDummy);
 
 // Morph Cube class to handle transactions
 export class MorphCube {
   constructor() {
     this.user = userDummy;
+    this.skeleton = null;
+    this.latestState = null; // Store the latest state for finishMorph
+  }
+
+  // Initialize the skeleton from userDummy.currentSKEL
+  async initializeSkeleton() {
+    if (!this.skeleton) {
+      this.skeleton = new SkeletonInitializer();
+      await this.skeleton.set(this.user.currentSKEL, false); // Pull operation
+      console.log(`Skeleton initialized with value: ${this.user.currentSKEL}`);
+    }
+    return this.skeleton;
   }
 
   // Method to access the user's current skeleton value
   getUserSkeleton() {
-    console.log(`
->>> WARSHIP COMMAND: RETRIEVING USER SKELETON...
->>> SKEL DATA: ${this.user.currentSKEL}
->>> OPERATION COMPLETE
-`);
+    console.log(`Retrieving user skeleton: ${this.user.currentSKEL}`);
     return this.user.currentSKEL;
+  }
+
+  // Method to handle incoming NEUROM requests (always PULL)
+  async receiveRequest(value, morphPin) {
+    try {
+      // Validate MORPH PIN
+      const VALID_MORPH_PIN = '◇◇●●';
+      if (morphPin !== VALID_MORPH_PIN) {
+        throw new Error('Invalid MORPH PIN. Verification failed.');
+      }
+
+      // Step 1: Initialize skeleton if not already done
+      await this.initializeSkeleton();
+
+      // Step 2: Log the incoming request
+      console.log(`Receiving NEUROM request: PULL ${value}`);
+
+      // Step 3: Perform the PULL operation using PullModule
+      const pullModule = new PullModule(this.skeleton);
+      this.latestState = await pullModule.pull(value);
+
+      // Step 4: Update this.skeleton with the new state
+      this.skeleton.state = { ...this.latestState };
+
+      // Step 5: Update userDummy's currentSKEL with the new value
+      const newValue = parseInt(this.latestState.units.slice(0, this.latestState.numberLength).map(u => SYMBOL_SEQUENCE.indexOf(u.currentSymbol)).join('') || '0', 10);
+      this.user.currentSKEL = newValue;
+      console.log(`User skeleton updated to: ${this.user.currentSKEL}`);
+
+      return this.latestState;
+    } catch (error) {
+      console.error('Receive request failed:', error.message);
+      throw error;
+    }
+  }
+
+  // Method to export the finished skeleton as a JSON string
+  finishMorph() {
+    if (!this.skeleton || !this.latestState) {
+      throw new Error('No skeleton or state available. Run a transaction first.');
+    }
+    const skeletonJson = JSON.stringify(this.latestState);
+    console.log(`Finish Morph: Exporting skeleton as JSON: ${skeletonJson}`);
+    return skeletonJson;
   }
 }

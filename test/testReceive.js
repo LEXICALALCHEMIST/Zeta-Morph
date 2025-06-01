@@ -1,64 +1,47 @@
+import { userDummy } from '../userTest/userDummy.js';
+import { testDummy2 } from '../userTest/userDummy2.js';
 import { receive } from '../ZTRL/receive.js';
-import { SYMBOL_SEQUENCE, VOID_SYMBOL } from '../core/SacredSymbols.js';
 
 console.log('NUEROM PROTOCOL - RECEIVE TEST');
 
-const tests = [
-  {
-    description: 'Receive PUSH 5 with valid MORPH PIN',
-    input: 'MORPHCODE: Intent: PUSH, value: 5, MORPHPIN: ◇◇●●',
-    expectedState: {
-      units: [
-        { currentSymbol: SYMBOL_SEQUENCE[5] },  // U1: ■ (5)
-        { currentSymbol: VOID_SYMBOL },         // U2: ⊙
-        { currentSymbol: VOID_SYMBOL },         // U3: ⊙
-        { currentSymbol: VOID_SYMBOL },         // U4: ⊙
-        { currentSymbol: VOID_SYMBOL },         // U5: ⊙
-        { currentSymbol: VOID_SYMBOL },         // U6: ⊙
-        { currentSymbol: VOID_SYMBOL },         // U7: ⊙
-        { currentSymbol: VOID_SYMBOL },         // U8: ⊙
-        { currentSymbol: VOID_SYMBOL },         // U9: ⊙
-        { currentSymbol: VOID_SYMBOL },         // U10: ⊙
-        { currentSymbol: VOID_SYMBOL },         // U11: ⊙
-        { currentSymbol: VOID_SYMBOL }          // U12: ⊙
-      ],
-      numberLength: 1,
-      activeUnitTarget: 'u1'
-    }
-  }
-];
-
 async function runTests() {
-  for (let index = 0; index < tests.length; index++) {
-    const test = tests[index];
-    console.log(`Test Case ${index + 1}: ${test.description}`);
+  console.log('Starting Receive Test');
+  
+  try {
+    // Test: Receive a send object with a random value of 300
+    console.log('Test: Receiving Send Object - PUSH 300');
     
-    try {
-      // Receive and process the morph code
-      const state = await receive(test.input);
-      
-      // Assert the resulting state matches the expected state
-      const passed = 
-        state.units.every((unit, i) => 
-          unit.currentSymbol === test.expectedState.units[i].currentSymbol
-        ) &&
-        state.numberLength === test.expectedState.numberLength &&
-        state.activeUnitTarget === test.expectedState.activeUnitTarget;
-      
-      console.log(`Result: ${passed ? 'PASS' : 'FAIL'}`);
-      if (!passed) {
-        console.log(`Mismatch: Got ${JSON.stringify({
-          units: state.units.map(unit => ({ currentSymbol: unit.currentSymbol })),
-          numberLength: state.numberLength,
-          activeUnitTarget: state.activeUnitTarget
-        })}, Expected: ${JSON.stringify(test.expectedState)}`);
-      }
-      
-    } catch (error) {
-      console.error(`Test Case ${index + 1} failed:`, error.message);
+    // Define the send object
+    const sendObject = {
+      intent: 'PUSH',
+      value: 300,
+      morphPin: '◇◇●●',
+      target: 'Dummy2'
+    };
+    
+    // Log the reception of the send object
+    console.log('Received Send Object:', sendObject);
+    
+    // Call receive.js to validate the send object and get the morphOp
+    const morphOp = await receive(sendObject);
+    
+    // Log the morphOp
+    console.log(`MorphOp: { INTENT: "${morphOp.INTENT}", VALUE: ${morphOp.VALUE} }`);
+    
+    // Verify the morphOp
+    const passed = 
+      morphOp.INTENT === 'PUSH' &&
+      morphOp.VALUE === 300;
+    
+    console.log(`Result: ${passed ? 'PASS' : 'FAIL'}`);
+    if (!passed) {
+      console.log(`Mismatch: Expected INTENT: PUSH, VALUE: 300, Got: ${JSON.stringify(morphOp)}`);
     }
-    console.log('---');
+    
+  } catch (error) {
+    console.error('Test Failed:', error.message);
   }
+  console.log('Test Complete');
 }
 
 runTests();
