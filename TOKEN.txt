@@ -1,31 +1,40 @@
-
-
-Current File Structure
 ZetaMorph/
   MorphLogic/
     SkeletonInitializer.js (Initializes 12-unit skeletons, handles snapshot resets)
-    PushModule.js (Applies push operations using shifted keys)
-    PullModule.js
-    SnapshotPush.js (Handles snapshot resets for push operations)
-    SnapshotPull.js (Handles snapshot resets for push operations)
-    PullModule.js (Handles subtraction)
+    PushModule.js (Applies push operations using shifted keys, used by Cube for receiving)
+    PullModule.js (Applies pull operations, used by ZTRL/update.js for sending)
+    SnapshotPush.js (Handles snapshot resets for push operations, used by PushModule.js)
+    SnapshotPull.js (Handles snapshot resets for pull operations, used by PullModule.js)
   core/
-    SacredSymbols.js (Defines SYMBOL_SEQUENCE and VOID_SYMBOL)
+    SacredSymbols.js (Defines SYMBOL_SEQUENCE and VOID_SYMBOL, used across the system)
     carryBus.js (Manages carry operations, used by SkeletonInitializer.js)
-    MorphInit.js (Sets up ecosystem by initializing skeleton and shifting keys)
+    MorphInit.js (Sets up ecosystem by initializing skeleton and shifting keys, used by PushModule.js and PullModule.js)
   key/
-    KeyMaker.js (Generates keys for numbers)
-    ShiftKey.js (Shifts keys to match target lengths)
+    KeyMaker.js (Generates keys for numbers, used by MorphInit.js)
+    ShiftKey.js (Shifts keys to match target lengths, used by MorphInit.js)
   skeleton/
-    unitExtensionsPull.js
-    unitExtensionsPush.js (Extends unit classes with push logic)
-    unit1.js to unit12.js (Individual unit classes for skeleton initialization)
+    unitExtensionsPull.js (Extends unit classes with pull logic, used by PullModule.js)
+    unitExtensionsPush.js (Extends unit classes with push logic, used by PushModule.js)
+    unit1.js to unit12.js (Individual unit classes for skeleton initialization, used by SkeletonInitializer.js)
+  ZTRL/ (Added: API layer for send/receive operations)
+    send.js (Handles send requests, pulls from sender's skeleton, returns morphOp and newSkeletonJson)
+    receive.js (Handles receive requests, returns morphOp for pushing)
+    update.js (Updates sender's skeleton by pulling the send amount, used by send.js)
+    signal.js (Dispatches API requests to send.js and receive.js, used by Cube)
+  MORPHCUBE/ (Added: Cube logic for receiving operations)
+    cube.js (Defines Cube class for receiving operations, processes morphOp to push values)
+  userTest/ (Added: Test data for users)
+    userDummy.js (Test user with currentSKEL: 38287, used in testCube.js)
+    testDummy2.js (Test user with currentSKEL: 45678, used in testCube.js)
   test/
     testSkeletonInit.js (Tests skeleton initialization for 999,999,999,999)
     testKeyMaker.js (Tests key generation for 333, 303,303, 999,999,999, 777,777,888,999)
     testShiftKey.js (Tests key shifting for the same numbers)
     testMorphInit.js (Tests ecosystem setup: skeleton=500, key=50)
-    testPush.js (Tests pushing 50 onto 500, expecting 550)
+    testPush.js (Updated: Tests pushing 50 onto 500, expecting 550, now uses Cube and Signal)
+    testSend.js (Added: Tests ZTRL/send.js, simulates sending 300, verifies sender's skeleton update)
+    testReceive.js (Added: Tests ZTRL/receive.js, simulates receiving 300, verifies morphOp)
+    testCube.js (Added: Tests full send transaction, userA sends 300 to userB, verifies both skeletons)
 
   Notes on the Structure
 Minimal Setup: We’ve kept the system minimal, focusing on skeleton initialization, key generation/shifting, ecosystem setup, and push operations. Pull operations (unitExtensionsPull.js, PullModule.js, SnapshotPull.js) and distributed mesh components (Chronos OS, Neurum Protocol, ZTRL) are not yet implemented.
@@ -35,8 +44,6 @@ Push Ready: We’ve implemented push logic (unitExtensionsPush.js, PushModule.js
 
 
 CORE////----------------------------------------------------------
-
-
 ------------------------------------------------------------------
 carryBus.js
 ------------------------------------------------------------------
@@ -60,8 +67,6 @@ export default class CarryBus {
     return carry;
   }
 }
-
-
 
 ------------------------------------------------------------------
 MorphInit.js
@@ -112,8 +117,6 @@ export async function morphInit(newNumber, currentSkeletonNumber, isPushOperatio
   return { skeleton, key: shiftedKey };
 }
 
-
-
 ------------------------------------------------------------------
 SacredSymbols.js
 ------------------------------------------------------------------
@@ -160,6 +163,7 @@ export default class KeyMaker {
     return key;
   }
 }
+
 ------------------------------------------------------------------
 shiftKey.js
 ------------------------------------------------------------------
@@ -206,8 +210,8 @@ export default class ShiftKey {
     return shiftedKey;
   }
 }
-MorphLogic--------------------------------------------------------
 
+MorphLogic--------------------------------------------------------
 ------------------------------------------------------------------
 PushModule.js
 ------------------------------------------------------------------
@@ -317,6 +321,7 @@ export default class PushModule {
     return finalState;
   }
 }
+
 ------------------------------------------------------------------
 PullModule.js
 ------------------------------------------------------------------
@@ -1549,163 +1554,291 @@ export async function extendUnits() {
 }
 
 
-ZTRL//////////// NUEROM CONNECTION
+ZTRL/Zeta-Transfer-Resonance-Layer/////////// NUEROM CONNECTION
 
+============================================================================================
 send.js///////////////////////////
+============================================================================================
+import { update } from './update.js';
 
-export function send(number) {
-  // Validate the number
-  if (typeof number !== 'number' || number < 0) {
-    throw new Error('ZTRL send: Number must be a non-negative integer');
-  }
-
-  // Create Zeta-compatible object
-  const zetaObject = {
-    intent: 'PUSH',
-    value: number
-  };
-
-  // Prepare the intent string for NUEROM
-  const intentString = `${zetaObject.intent}[${zetaObject.value}]`;
-  console.log(`ZTRL sending to NUEROM: ${intentString}`);
-
-  return {
-    morphCode: `MORPHCODE: Intent: ${zetaObject.intent}, value: ${zetaObject.value}`
-  };
-}
-
-receive.js///////////////////////////
-
-import SkeletonInitializer from '../MorphLogic/SkeletonInitializer.js';
-import PushModule from '../MorphLogic/PushModule.js';
-import PullModule from '../MorphLogic/PullModule.js';
-import { SYMBOL_SEQUENCE, VOID_SYMBOL } from '../core/SacredSymbols.js';
-
-export async function receive(morphCode) {
+export async function send(sendObject, currentSKEL) {
   // Define the placeholder MORPH PIN
   const VALID_MORPH_PIN = '◇◇●●';
 
-  // Parse the morph code
-  const regex = /MORPHCODE: Intent: (PUSH|PULL), value: (\d+), MORPHPIN: (.+)/;
-  const match = morphCode.match(regex);
-  
-  if (!match) {
-    throw new Error('ZTRL receive: Invalid morph code format');
+  // Validate the send object structure
+  if (!sendObject || typeof sendObject !== 'object') {
+    throw new Error('ZTRL send: Invalid send object format');
   }
 
-  const [, intent, valueStr, morphPin] = match;
-  const value = parseInt(valueStr, 10);
+  const { intent, value, morphPin, target } = sendObject;
+
+  // Validate the intent
+  if (intent !== 'PUSH') {
+    throw new Error('ZTRL send: Intent must be PUSH');
+  }
+
+  // Validate the value
+  if (typeof value !== 'number' || value < 0 || !Number.isInteger(value)) {
+    throw new Error('ZTRL send: Value must be a non-negative integer');
+  }
+
+  // Validate the MORPH PIN
+  if (morphPin !== VALID_MORPH_PIN) {
+    throw new Error('ZTRL send: Invalid MORPH PIN. Verification failed.');
+  }
+
+  // Validate the target
+  if (target !== 'Dummy2') {
+    throw new Error('ZTRL send: Target must be Dummy2');
+  }
+
+  // Log the send operation
+  console.log(`ZTRL send: Intent: ${intent}, value: ${value}, MORPHPIN: ${morphPin}, Target: ${target}`);
+
+  // Update the sender's skeleton by pulling the send amount
+  const newSkeletonJson = await update(currentSKEL, value);
+
+  // Create the morphOp object for the recipient
+  const morphOp = {
+    INTENT: intent,
+    VALUE: value
+  };
+
+  // Return both the morphOp and the updated skeleton JSON
+  return { morphOp, newSkeletonJson };
+}
+
+
+============================================================================================
+update.js///////////////////////////
+============================================================================================
+import SkeletonInitializer from '../MorphLogic/SkeletonInitializer.js';
+import PullModule from '../MorphLogic/PullModule.js';
+import { SYMBOL_SEQUENCE } from '../core/SacredSymbols.js';
+
+export async function update(currentSKEL, value) {
+  // Validate the send amount against the current skeleton balance
+  if (typeof value !== 'number' || value < 0 || !Number.isInteger(value)) {
+    throw new Error('ZTRL update: Value must be a non-negative integer');
+  }
+
+  if (value > currentSKEL) {
+    throw new Error('ZTRL update: not enough funds');
+  }
+
+  // Initialize the skeleton with the currentSKEL value
+  const skeleton = new SkeletonInitializer();
+  await skeleton.set(currentSKEL, false);
+  console.log(`ZTRL update: Skeleton initialized with value: ${currentSKEL}`);
+
+  // Perform the PULL operation using PullModule
+  const pullModule = new PullModule(skeleton);
+  const updatedState = await pullModule.pull(value);
+
+  // Convert the updated state to a JSON string
+  const newSkeletonJson = JSON.stringify(updatedState);
+  console.log(`ZTRL update: Updated skeleton JSON after pulling ${value}: ${newSkeletonJson}`);
+
+  return newSkeletonJson;
+}
+
+
+
+============================================================================================
+receive.js///////////////////////////
+============================================================================================
+export async function receive(sendObject) {
+  // Define the placeholder MORPH PIN
+  const VALID_MORPH_PIN = '◇◇●●';
+
+  // Validate the send object structure
+  if (!sendObject || typeof sendObject !== 'object') {
+    throw new Error('ZTRL receive: Invalid send object format');
+  }
+
+  const { intent, value, morphPin, target } = sendObject;
+
+  // Validate the intent
+  if (intent !== 'PUSH') {
+    throw new Error('ZTRL receive: Intent must be PUSH');
+  }
+
+  // Validate the value
+  if (typeof value !== 'number' || value < 0 || !Number.isInteger(value)) {
+    throw new Error('ZTRL receive: Value must be a non-negative integer');
+  }
 
   // Validate the MORPH PIN
   if (morphPin !== VALID_MORPH_PIN) {
     throw new Error('ZTRL receive: Invalid MORPH PIN. Verification failed.');
   }
 
-  // Validate the value
-  if (isNaN(value) || value < 0) {
-    throw new Error('ZTRL receive: Value must be a non-negative integer');
+  // Validate the target
+  if (target !== 'Dummy2') {
+    throw new Error('ZTRL receive: Target must be Dummy2');
   }
 
-  // Log receipt from NUEROM
-  console.log(`ZTRL received from NUEROM: Intent: ${intent}, value: ${value}, MORPHPIN: ${morphPin}`);
+  // Log receipt from NEUROM
+  console.log(`ZTRL received from NEUROM: Intent: ${intent}, value: ${value}, MORPHPIN: ${morphPin}, Target: ${target}`);
 
-  // Initialize skeleton starting at 0
-  const skeleton = new SkeletonInitializer();
-  await skeleton.set(0, intent === 'PUSH');
+  // Create the morphOp object
+  const morphOp = {
+    INTENT: intent,
+    VALUE: value
+  };
 
-  // Execute the operation based on intent
-  let state;
-  if (intent === 'PUSH') {
-    const pushModule = new PushModule(skeleton);
-    state = await pushModule.push(value);
-  } else if (intent === 'PULL') {
-    const pullModule = new PullModule(skeleton);
-    state = await pullModule.pull(value);
-  } else {
-    throw new Error('ZTRL receive: Unsupported intent');
-  }
-
-  // Log the final skeleton state
-  const skeletonDisplay = `<${state.units.slice(0, 4).map(u => u.currentSymbol).join('')}|${state.units.slice(4, 8).map(u => u.currentSymbol).join('')}|${state.units.slice(8, 12).map(u => u.currentSymbol).join('')}>`;
-  console.log(`ZTRL operation result: Skeleton: ${skeletonDisplay}`);
-
-  return state;
+  return morphOp;
 }
 
+
+============================================================================================
+signal.js///////////////////////////
+============================================================================================
+import { send } from './send.js';
+import { receive } from './receive.js';
+
+export class Signal {
+  constructor() {
+    console.log('Signal: Initialized API request dispatcher');
+  }
+
+  // Dispatch a send request (for SendCube)
+  async sendRequest(sendObject, currentSKEL) {
+    try {
+      console.log('Signal: Dispatching send request');
+      const { morphOp, newSkeletonJson } = await send(sendObject, currentSKEL);
+      console.log('Signal: Send request processed - MorphOp:', morphOp, 'New Skeleton JSON:', newSkeletonJson);
+      return { morphOp, newSkeletonJson };
+    } catch (error) {
+      console.error('Signal: Send request failed:', error.message);
+      throw error;
+    }
+  }
+
+  // Dispatch a receive request (for ReceiveCube)
+  async receiveRequest(sendObject) {
+    try {
+      console.log('Signal: Dispatching receive request');
+      const morphOp = await receive(sendObject);
+      console.log('Signal: Receive request processed - MorphOp:', morphOp);
+      return morphOp;
+    } catch (error) {
+      console.error('Signal: Receive request failed:', error.message);
+      throw error;
+    }
+  }
+}
+
+============================================================================================
 <<<MORPHCUBE>>>
-import { userDummy } from '../userTest/userDummy.js';
+============================================================================================
 import SkeletonInitializer from '../MorphLogic/SkeletonInitializer.js';
-import PullModule from '../MorphLogic/PullModule.js';
+import PushModule from '../MorphLogic/PushModule.js';
+import { Signal } from '../ZTRL/signal.js';
 import { SYMBOL_SEQUENCE } from '../core/SacredSymbols.js';
 
 console.log('MorphCube Initialized');
-console.log('Imported userDummy:', userDummy);
 
-// Morph Cube class to handle transactions
-export class MorphCube {
-  constructor() {
-    this.user = userDummy;
+// Class for receiving money (push to recipient's skeleton)
+export class Cube {
+  constructor(user) {
+    this.user = user;
     this.skeleton = null;
-    this.latestState = null; // Store the latest state for finishMorph
+    this.signal = new Signal(); // Initialize the Signal dispatcher
   }
 
-  // Initialize the skeleton from userDummy.currentSKEL
+  // Initialize the skeleton from user.currentSKEL
   async initializeSkeleton() {
     if (!this.skeleton) {
       this.skeleton = new SkeletonInitializer();
-      await this.skeleton.set(this.user.currentSKEL, false); // Pull operation
-      console.log(`Skeleton initialized with value: ${this.user.currentSKEL}`);
+      await this.skeleton.set(this.user.currentSKEL, false);
+      console.log(`Cube: Skeleton initialized with value: ${this.user.currentSKEL} for user: ${JSON.stringify(this.user)}`);
     }
     return this.skeleton;
   }
 
   // Method to access the user's current skeleton value
   getUserSkeleton() {
-    console.log(`Retrieving user skeleton: ${this.user.currentSKEL}`);
+    console.log(`Cube: Retrieving user skeleton: ${this.user.currentSKEL}`);
     return this.user.currentSKEL;
   }
 
-  // Method to handle incoming NEUROM requests (always PULL)
+  // Method to process a received morphOp and update the skeleton
+  async morph(currentSKEL, morphOp) {
+    // Validate the morphOp
+    if (!morphOp || typeof morphOp !== 'object') {
+      throw new Error('Cube morph: Invalid morphOp format');
+    }
+
+    const { INTENT, VALUE } = morphOp;
+
+    if (INTENT !== 'PUSH') {
+      throw new Error('Cube morph: INTENT must be PUSH');
+    }
+
+    if (typeof VALUE !== 'number' || VALUE < 0 || !Number.isInteger(VALUE)) {
+      throw new Error('Cube morph: VALUE must be a non-negative integer');
+    }
+
+    // Initialize the skeleton with the currentSKEL value
+    const skeleton = new SkeletonInitializer();
+    await skeleton.set(currentSKEL, false);
+    console.log(`Cube morph: Skeleton initialized with value: ${currentSKEL}`);
+
+    // Perform the PUSH operation using PushModule
+    const pushModule = new PushModule(skeleton);
+    const updatedState = await pushModule.push(VALUE);
+
+    // Convert the updated state to a JSON string
+    const newSkeletonJson = JSON.stringify(updatedState);
+    console.log(`Cube morph: Updated skeleton JSON after pushing ${VALUE}: ${newSkeletonJson}`);
+
+    return newSkeletonJson;
+  }
+
+  // Method to receive money by pushing to the recipient's skeleton
   async receiveRequest(value, morphPin) {
     try {
-      // Validate MORPH PIN
-      const VALID_MORPH_PIN = '◇◇●●';
-      if (morphPin !== VALID_MORPH_PIN) {
-        throw new Error('Invalid MORPH PIN. Verification failed.');
-      }
+      // Step 1: Create the send object
+      const sendObject = {
+        intent: 'PUSH',
+        value,
+        morphPin,
+        target: 'Dummy2'
+      };
 
-      // Step 1: Initialize skeleton if not already done
-      await this.initializeSkeleton();
+      // Step 2: Dispatch the receive request via Signal to get the morphOp
+      console.log(`Cube: Receiving request - PUSH ${value} to recipient's skeleton`);
+      const morphOp = await this.signal.receiveRequest(sendObject);
 
-      // Step 2: Log the incoming request
-      console.log(`Receiving NEUROM request: PULL ${value}`);
+      // Step 3: Log the receive request
+      console.log(`Cube: Processing morphOp - PUSH ${morphOp.VALUE} to recipient's skeleton`);
 
-      // Step 3: Perform the PULL operation using PullModule
-      const pullModule = new PullModule(this.skeleton);
-      this.latestState = await pullModule.pull(value);
+      // Step 4: Call morph() to process the morphOp and update the skeleton
+      const newSkeletonJson = await this.morph(this.user.currentSKEL, morphOp);
 
-      // Step 4: Update this.skeleton with the new state
-      this.skeleton.state = { ...this.latestState };
-
-      // Step 5: Update userDummy's currentSKEL with the new value
-      const newValue = parseInt(this.latestState.units.slice(0, this.latestState.numberLength).map(u => SYMBOL_SEQUENCE.indexOf(u.currentSymbol)).join('') || '0', 10);
+      // Step 5: Update user's currentSKEL with the new value
+      const newSkeleton = JSON.parse(newSkeletonJson);
+      const newValue = parseInt(newSkeleton.units.slice(0, newSkeleton.numberLength).map(u => SYMBOL_SEQUENCE.indexOf(u.currentSymbol)).join('') || '0', 10);
       this.user.currentSKEL = newValue;
-      console.log(`User skeleton updated to: ${this.user.currentSKEL}`);
+      console.log(`Cube: Recipient's skeleton updated to: ${this.user.currentSKEL}`);
 
-      return this.latestState;
+      // Return the newSkeletonJson for further processing
+      return newSkeletonJson;
     } catch (error) {
-      console.error('Receive request failed:', error.message);
+      console.error('Cube: Receive request failed:', error.message);
       throw error;
     }
   }
 
   // Method to export the finished skeleton as a JSON string
   finishMorph() {
-    if (!this.skeleton || !this.latestState) {
-      throw new Error('No skeleton or state available. Run a transaction first.');
+    if (!this.skeleton) {
+      throw new Error('No skeleton available. Run a transaction first.');
     }
-    const skeletonJson = JSON.stringify(this.latestState);
-    console.log(`Finish Morph: Exporting skeleton as JSON: ${skeletonJson}`);
+    const skeletonJson = JSON.stringify(this.skeleton.getState());
+    console.log(`Cube: Finish Morph: Exporting skeleton as JSON: ${skeletonJson}`);
     return skeletonJson;
   }
 }
+============================================================================================
