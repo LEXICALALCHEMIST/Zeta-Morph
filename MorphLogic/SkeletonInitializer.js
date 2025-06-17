@@ -2,6 +2,7 @@ import { extendUnits as extendUnitsPush } from '../skeleton/unitExtensionsPush.j
 import { extendUnits as extendUnitsPull } from '../skeleton/unitExtensionsPull.js';
 import CarryBus from '../core/carryBus.js';
 import { SYMBOL_SEQUENCE, VOID_SYMBOL } from '../core/SacredSymbols.js';
+import watcher from '../utils/watcher.js';
 
 export default class SkeletonInitializer {
   constructor() {
@@ -81,6 +82,14 @@ export default class SkeletonInitializer {
       activeUnitTarget: state.activeUnitTarget
     })}`);
     console.log(`Skeleton: ${skeleton}`);
+    watcher({
+      phase: 'set',
+      state: {
+        initialSKEL: number,
+        units: state.units.map(u => u.currentSymbol),
+        numberLength: state.numberLength
+      }
+    });
     return state;
   }
 

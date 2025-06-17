@@ -1,6 +1,7 @@
 import SkeletonInitializer from '../MorphLogic/SkeletonInitializer.js';
 import PushModule from '../MorphLogic/PushModule.js';
 import { SYMBOL_SEQUENCE, VOID_SYMBOL } from '../core/SacredSymbols.js';
+import weaver from '../utils/weaver.js';
 
 console.log('NUEROM PROTOCOL - PUSH TEST');
 
@@ -34,7 +35,7 @@ const tests = [
       units: [
         { currentSymbol: SYMBOL_SEQUENCE[5] },  // U1: ■ (5)
         { currentSymbol: SYMBOL_SEQUENCE[0] },  // U2: ⚙ (0)
-        { currentSymbol: SYMBOL_SEQUENCE[7] },  // U3: ◙ (7)
+        { currentSymbol: SYMBOL_SEQUENCE[7] },  // U3: ¥ (7)
         { currentSymbol: SYMBOL_SEQUENCE[1] },  // U4: ● (1)
         { currentSymbol: VOID_SYMBOL },         // U5: ⊙
         { currentSymbol: VOID_SYMBOL },         // U6: ⊙
@@ -79,6 +80,9 @@ async function runTests() {
     console.log(`Test Case ${index + 1}: ${test.description}`);
     
     try {
+      // Reset Weaver POM for this test case
+      weaver.reset();
+      
       console.log('Starting push operation');
       
       // Initialize skeleton

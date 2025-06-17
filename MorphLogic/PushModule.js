@@ -1,6 +1,7 @@
 import { morphInit } from '../core/MorphInit.js';
 import { SnapshotPush } from './SnapshotPush.js';
 import { SYMBOL_SEQUENCE, VOID_SYMBOL } from '../core/SacredSymbols.js';
+import watcher from '../utils/watcher.js';
 
 export default class PushModule {
   constructor(skeleton) {
@@ -101,6 +102,17 @@ export default class PushModule {
     const finalState = this.skeleton.getState();
     const skeletonDisplay = `<${finalState.units.slice(0, 4).map(u => u.currentSymbol).join('')}|${finalState.units.slice(4, 8).map(u => u.currentSymbol).join('')}|${finalState.units.slice(8, 12).map(u => u.currentSymbol).join('')}>`;
     console.log(`Final Skeleton (after snapshot reset): ${skeletonDisplay}`);
+
+  //WATCHER & WEAVER
+    watcher({
+      phase: 'morphops',
+      intent: 'PUSH',
+      value: keyNumber,
+      unitName: units.map((_, i) => key.push[i].split(':')[0]), // e.g., ['U1', 'U2', ...]
+      symbolBefore: units.map((unit, i) => unit.state?.currentSymbol || VOID_SYMBOL), // e.g., ['⚙', '⊙', ...]
+      id: 'uuid-placeholder' // UUID later
+    });
+
     return finalState;
   }
 }

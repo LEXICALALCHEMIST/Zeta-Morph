@@ -3,6 +3,7 @@ import { testDummy2 } from '../userTest/userDummy2.js';
 import { Cube } from '../MORPHCUBE/cube.js';
 import { send } from '../ZTRL/send.js';
 import { SYMBOL_SEQUENCE } from '../core/SacredSymbols.js';
+import weaver from '../utils/weaver.js';
 
 console.log('NUEROM PROTOCOL - CUBE TEST');
 
@@ -10,6 +11,9 @@ async function runTests() {
   console.log('Starting Cube Test');
 
   try {
+    // Reset Weaver POM for this test
+    weaver.reset();
+
     // Test: Simulate a send transaction - userA sends 300 to userB
     console.log('Test: Send Transaction - userA sends 300 to userB');
 
@@ -48,6 +52,11 @@ async function runTests() {
     console.log(`Receiver (userB) updated skeleton value: ${receiverNewValue}, Expected: ${expectedReceiverValue}`);
     console.log('Receiver New Skeleton JSON:', receiverNewSkeletonJson);
 
+    // Step 3: Call finishMorph to trigger Watcher for final phase
+    const finalSkeletonJson = receiverCube.finishMorph();
+    const finalState = JSON.parse(finalSkeletonJson);
+    console.log('Final POM:', JSON.stringify(weaver.pom, null, 2));
+
     // Verify the transaction
     const passed =
       morphOp.INTENT === 'PUSH' &&
@@ -60,8 +69,8 @@ async function runTests() {
       console.log(`Mismatch: Expected morphOp: { INTENT: "PUSH", VALUE: ${sendValue} }, Sender Value: ${expectedSenderValue}, Receiver Value: ${expectedReceiverValue}, Got: morphOp: ${JSON.stringify(morphOp)}, Sender Value: ${senderNewValue}, Receiver Value: ${receiverNewValue}`);
     }
 
-    // Return the newSkeletonJson for userB's local update
-    return receiverNewSkeletonJson;
+    // Return the finalSkeletonJson for userB's local update
+    return finalSkeletonJson;
 
   } catch (error) {
     console.error('Test Failed:', error.message);
@@ -72,8 +81,8 @@ async function runTests() {
 }
 
 // Run the tests and log the result
-runTests().then(receiverNewSkeletonJson => {
-  console.log('Final Output - Receiver New Skeleton JSON for Local Update:', receiverNewSkeletonJson);
+runTests().then(finalSkeletonJson => {
+  console.log('Final Output - Receiver Final Skeleton JSON for Local Update:', finalSkeletonJson);
 }).catch(error => {
   console.error('Test Run Failed:', error.message);
 });
