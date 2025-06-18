@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from 'uuid';
 export default function weaver(data) {
   // Initialize POM if not set
   if (!weaver.pom) {
@@ -34,7 +35,7 @@ export default function weaver(data) {
         length: data.length
       };
       weaver.pom.userId = data.userId;
-      weaver.pom.proofId = weaver.pom.proofId || 'uuid-placeholder'; // UUID later
+      weaver.pom.proofId = uuidv4(); // UUID later
     }
   }
 

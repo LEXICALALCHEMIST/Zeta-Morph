@@ -3,6 +3,7 @@ import PushModule from '../MorphLogic/PushModule.js';
 import { SYMBOL_SEQUENCE } from '../core/SacredSymbols.js';
 import watcher from '../utils/watcher.js';
 import weaver from '../utils/weaver.js';
+import { v4 as uuidv4 } from 'uuid';
 
 export class ReceiveCube {
   constructor(user) {
@@ -47,7 +48,7 @@ export class ReceiveCube {
       this.user.currentSKEL = currentSKEL;
     }
 
-    // Capture final phase
+      //WATCHER FINAL PHASE
     if (newSkeletonJson) {
       const finalState = JSON.parse(newSkeletonJson);
       watcher({
@@ -55,7 +56,8 @@ export class ReceiveCube {
         skeleton: currentSKEL,
         units: finalState.units.map(u => u.currentSymbol),
         length: finalState.numberLength,
-        userId: this.user.id || 'user-placeholder'
+        userId: this.user.id || 'user-placeholder',
+        proofId: uuidv4(), // Generate UUID for proofId
       });
     }
 
@@ -66,18 +68,19 @@ export class ReceiveCube {
     };
   }
 
-  // In rCUBE.js, update morph method
+  // PUSH MODULE ACTVATE PUSH
   async morph(currentSKEL, morphOp) {
     const skeleton = new SkeletonInitializer();
     await skeleton.set(currentSKEL, true);
 
     const pushModule = new PushModule(skeleton);
-    const updatedState = await pushModule.push(morphOp.VALUE, morphOp.morphId); // Pass morphId
+    const updatedState = await pushModule.push(morphOp.VALUE, morphOp.morphId || uuidv4()); // Pass morphId or generate
 
     const newSkeletonJson = JSON.stringify(updatedState);
     return newSkeletonJson;
   }
 
+  //RETURN FINAL POM
   getPOM() {
     return weaver.pom || null;
   }

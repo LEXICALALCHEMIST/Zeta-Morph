@@ -19,5 +19,9 @@
   "bugs": {
     "url": "https://github.com/LEXICALALCHEMIST/ZetaMorph/issues"
   },
-  "homepage": "https://github.com/LEXICALALCHEMIST/ZetaMorph#readme"
+  "homepage": "https://github.com/LEXICALALCHEMIST/ZetaMorph#readme",
+  "dependencies": {
+    "axios": "^1.10.0",
+    "uuid": "^11.1.0"
+  }
 }

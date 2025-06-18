@@ -8,7 +8,7 @@ export default class PushModule {
     this.skeleton = skeleton;
   }
 
-  async push(keyNumber) {
+  async push(keyNumber, morphId) {
     console.log(`Applying push for ${keyNumber}`);
     
     const currentSkeletonNumber = parseInt(this.skeleton.units.slice(0, this.skeleton.state.numberLength).map(u => SYMBOL_SEQUENCE.indexOf(u.state.currentSymbol)).join('') || '0', 10);
@@ -110,7 +110,7 @@ export default class PushModule {
       value: keyNumber,
       unitName: units.map((_, i) => key.push[i].split(':')[0]), // e.g., ['U1', 'U2', ...]
       symbolBefore: units.map((unit, i) => unit.state?.currentSymbol || VOID_SYMBOL), // e.g., ['⚙', '⊙', ...]
-      id: 'uuid-placeholder' // UUID later
+      id: morphId  // UUID later
     });
 
     return finalState;
