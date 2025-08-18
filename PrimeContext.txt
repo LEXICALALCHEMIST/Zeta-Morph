@@ -1,0 +1,104 @@
+skeltonPrime/
+
+morphicLock/
+morphicLock.js
+export function morphLock(lockCodes, factorCut) {
+  console.log(`factorCut: ${JSON.stringify(factorCut)}`);
+  console.log('MorphicLocks:', {
+    unitOne: lockCodes.unitOne || [],
+    unitTwo: lockCodes.unitTwo || [],
+    unitThree: lockCodes.unitThree || [],
+    unitFour: lockCodes.unitFour || [],
+    unitFive: lockCodes.unitFive || []
+  });
+}
+
+skeletonPrime.js
+export const unitOne = {
+  symbol: "1",
+  morphlocks: ["1A"]
+};
+
+export const unitTwo = {
+  symbol: "7",
+  morphlocks: ["7B"]
+};
+
+export const unitThree = {
+  symbol: "6",
+  morphlocks: ["6C"]
+};
+
+export const unitFour = {
+  symbol: "8",
+  morphlocks: ["8D"]
+};
+
+export const unitFive = {
+  symbol: "9",
+  morphlocks: ["9E"]
+};
+
+MorphLogic/
+Prime/
+
+lenghtValdiation.js
+export function lengthValidation(skeleton) {
+  const numberStr = [
+    skeleton.unit1.symbol,
+    skeleton.unit2.symbol,
+    skeleton.unit3.symbol,
+    skeleton.unit4.symbol,
+    skeleton.unit5.symbol
+  ].join('');
+  const digitLength = numberStr.length;
+  const factorLength = Math.ceil(digitLength / 2);
+  return { pLength: factorLength, qLength: factorLength };
+}
+
+MorphCube/
+primeCUBE.js
+import { unitOne, unitTwo, unitThree, unitFour, unitFive } from '../skeletonPrime/skeletonPrime.js';
+import { morphLock } from '../skeletonPrime/morphicLock/morphLock.js';
+import { lengthValidation } from '../MorphLogic/Prime/lengthValidation.js';
+
+
+const skeleton = {
+  unit1: unitOne,
+  unit2: unitTwo,
+  unit3: unitThree,
+  unit4: unitFour,
+  unit5: unitFive
+};
+
+export function primeCUBE(skeleton) {
+  Object.keys(skeleton).forEach(unit => {
+    console.log(`${unit}: ${skeleton[unit].symbol} | Locks: ${JSON.stringify(skeleton[unit].morphlocks)}`);
+  });
+
+  const factorCut = lengthValidation(skeleton);
+  console.log(`factorCut: ${JSON.stringify(factorCut)}`);
+
+  morphLock({
+    unitOne: skeleton.unit1.morphlocks,
+    unitTwo: skeleton.unit2.morphlocks,
+    unitThree: skeleton.unit3.morphlocks,
+    unitFour: skeleton.unit4.morphlocks,
+    unitFive: skeleton.unit5.morphlocks
+  }, factorCut);
+}
+
+testScape/
+primeTest.js 
+import { unitOne, unitTwo, unitThree, unitFour, unitFive } from '../skeletonPrime/skeletonPrime.js';
+import { primeCUBE } from '../MORPHCUBE/primeCUBE.js';
+
+const skeleton = {
+  unit1: unitOne,
+  unit2: unitTwo,
+  unit3: unitThree,
+  unit4: unitFour,
+  unit5: unitFive
+};
+
+primeCUBE(skeleton);
