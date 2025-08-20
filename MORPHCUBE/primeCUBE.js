@@ -1,6 +1,7 @@
 import { unitOne, unitTwo, unitThree, unitFour, unitFive } from '../skeletonPrime/skeletonPrime.js';
 import { morphLock } from '../skeletonPrime/morphicLock/morphLock.js';
 import { lengthValidation } from '../MorphLogic/Prime/lengthValidation.js';
+import { MorphicPortal } from '../skeletonPrime/morphPortal/mp.js';
 
 
 const skeleton = {
@@ -19,11 +20,14 @@ export function primeCUBE(skeleton) {
   const factorCut = lengthValidation(skeleton);
   console.log(`factorCut: ${JSON.stringify(factorCut)}`);
 
-  morphLock({
+  const lockCodes = {
     unitOne: skeleton.unit1.morphlocks,
     unitTwo: skeleton.unit2.morphlocks,
     unitThree: skeleton.unit3.morphlocks,
     unitFour: skeleton.unit4.morphlocks,
     unitFive: skeleton.unit5.morphlocks
-  }, factorCut);
+  };
+  
+  morphLock(lockCodes, factorCut);
+  MorphicPortal.distributeLockCodes(lockCodes);
 }

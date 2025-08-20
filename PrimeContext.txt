@@ -13,6 +13,49 @@ export function morphLock(lockCodes, factorCut) {
   });
 }
 
+morphPortal/
+export function Shard(id, digitFilter) {
+  const skeleton = {
+    unit1: { symbol: null, morphlocks: {} },
+    unit2: { symbol: null, morphlocks: {} },
+    unit3: { symbol: null, morphlocks: {} },
+    unit4: { symbol: null, morphlocks: {} },
+    unit5: { symbol: null, morphlocks: {} },
+    unit6: { symbol: null, morphlocks: {} }
+  };
+
+  return {
+    id,
+    digitFilter,
+    skeleton,
+    applyLocks(lockCodes) {
+      Object.keys(lockCodes).forEach(unit => {
+        const unitNum = unit.replace('unit', '').toLowerCase();
+        const targetUnit = `unit${unitNum}`;
+        if (skeleton[targetUnit]) {
+          skeleton[targetUnit].morphlocks = lockCodes[unit];
+        }
+      });
+    },
+    receiveLockCodes(lockCodes) {
+      this.applyLocks(lockCodes);
+      console.log(`Shard ${this.id} (Digit ${this.digitFilter}) Skeleton: ${JSON.stringify(this.skeleton)}`);
+    }
+  };
+}
+
+mp.js
+import { Shard } from '../morphPortal/shard.js';
+
+export const MorphicPortal = {
+  shards: Array.from({ length: 100 }, (_, i) => Shard(`shard-${i + 1}`, (i % 9) + 1)),
+  distributeLockCodes(lockCodes) {
+    this.shards.forEach(shard => {
+      shard.receiveLockCodes(lockCodes);
+    });
+  }
+};
+
 skeletonPrime.js
 export const unitOne = {
   symbol: "1",
@@ -57,10 +100,10 @@ export function lengthValidation(skeleton) {
 }
 
 MorphCube/
-primeCUBE.js
 import { unitOne, unitTwo, unitThree, unitFour, unitFive } from '../skeletonPrime/skeletonPrime.js';
 import { morphLock } from '../skeletonPrime/morphicLock/morphLock.js';
 import { lengthValidation } from '../MorphLogic/Prime/lengthValidation.js';
+import { MorphicPortal } from '../skeletonPrime/morphPortal/mp.js';
 
 
 const skeleton = {
@@ -79,13 +122,16 @@ export function primeCUBE(skeleton) {
   const factorCut = lengthValidation(skeleton);
   console.log(`factorCut: ${JSON.stringify(factorCut)}`);
 
-  morphLock({
+  const lockCodes = {
     unitOne: skeleton.unit1.morphlocks,
     unitTwo: skeleton.unit2.morphlocks,
     unitThree: skeleton.unit3.morphlocks,
     unitFour: skeleton.unit4.morphlocks,
     unitFive: skeleton.unit5.morphlocks
-  }, factorCut);
+  };
+  
+  morphLock(lockCodes, factorCut);
+  MorphicPortal.distributeLockCodes(lockCodes);
 }
 
 testScape/
@@ -102,3 +148,40 @@ const skeleton = {
 };
 
 primeCUBE(skeleton);
+
+
+//NOTES:
+Updated Official Notes: Lock Code Patterns
+
+FOLDING: Lock outside ~50-100 (Fold3A). Prunes ~50%.
+ZONES: Lock outside 100-200 (>200A, <100A). Prunes ~50%.
+EMIRPS: Lock non-emirps (103E). Prunes ~30%.
+REPETITION: Lock non-1-starts (2A, 3A). Prunes ~80%.
+SUM: Lock $ p \mod 9 + q \mod 9 \neq 4 $ (Sum9E). Prunes ~50%.
+RELAY CARRY BUS: Lock mismatch digits (3E, 3C). Prunes ~20%.
+RESIDUE POOL: Lock even-ending primes (EvenE). Prunes ~50%.
+PALINDROME LOCK: Lock non-palindromic (NonPalA). Prunes ~10%.
+MIRROR RESIDUE MODULO: Lock non-mirrored mod 7 (Mod7E). Prunes ~30%.
+DIGIT ORBIT LOCK: Lock non-overlapping digits (OrbitE). Prunes ~15%.
+FRACTAL BOUNDARY ZONES: Lock outside sub-zones (FractalA). Prunes ~10x.
+SPECTRAL SUM LOCK: Lock mismatch spectral sums (SpecSumE). Prunes ~20%.
+ENTROPY GRADIENT LOCK: Lock skewed histograms (EntropyE). Prunes ~70%.
+REMAINDER LOCK: Lock large remainders (RemLargeE), prioritize small (RemSmallA). Prunes ~20%.
+GRAVITY CHECK: Lock large differentials (GravLargeE), prioritize small (GravSmallA), constrain range (GravRangeE). Prunes ~20-50%.
+
+
+Shard Tests: Shard 1 tests primes starting with 1 ([101, 107, 109, 111, 113]):
+
+17689 ÷ 101 = 175 remainder 14 ($ r = 14 $).
+17689 ÷ 107 = 165 remainder 34 ($ r = 34 $).
+17689 ÷ 109 = 162 remainder 31 ($ r = 31 $).
+17689 ÷ 111 = 159 remainder 40 ($ r = 40 $).
+17689 ÷ 113 = 157 remainder 0 (success).
+
+
+Gravity Object: Stores remainders in MP (e.g., [14, 34, 31, 40, 0]). Computes differentials:
+
+$ |r_{101} - r_{113}| = |14 - 0| = 14 $ (small, 101 close to 113).
+$ |r_{107} - r_{113}| = 34 $ (larger, 107 farther).
+
+
