@@ -13,6 +13,78 @@ export function morphLock(lockCodes, factorCut) {
   });
 }
 
+LOCKS/
+repetitionLock.js
+export function repetitionLock(primeSkeleton) {
+  const digits = [
+    primeSkeleton.unit1.symbol,
+    primeSkeleton.unit2.symbol,
+    primeSkeleton.unit3.symbol,
+    primeSkeleton.unit4.symbol,
+    primeSkeleton.unit5.symbol
+  ].map(Number);
+  
+  const lockCodes = {
+    unitOne: [],
+    unitTwo: [],
+    unitThree: [],
+    unitFour: [],
+    unitFive: []
+  };
+  
+  // Unit 1 single-digit lock
+  const unit1Digit = digits[0];
+  if (unit1Digit) {
+    lockCodes.unitOne.push(`R-U1-${[2, 3, 4, 5, 6, 7, 8, 9].filter(d => d !== unit1Digit).join('.')}`);
+  }
+  
+  // Check for repeated digit pairs (e.g., units 1-2)
+  if (digits[0] === digits[1] && digits[0] !== 0) {
+    lockCodes.unitOne.push(`R-U1-${[2, 3, 4, 5, 6, 7, 8, 9].filter(d => d !== digits[0]).join('.')}`);
+    lockCodes.unitTwo.push(`R-U2-${[2, 3, 4, 5, 6, 7, 8, 9].filter(d => d !== digits[1]).join('.')}`);
+  }
+  
+  return lockCodes;
+}
+
+gapLock.js
+export function gapLock(primeSkeleton) {
+  const numberStr = [
+    primeSkeleton.unit1.symbol,
+    primeSkeleton.unit2.symbol,
+    primeSkeleton.unit3.symbol,
+    primeSkeleton.unit4.symbol,
+    primeSkeleton.unit5.symbol
+  ].join('');
+  const N = Number(numberStr);
+  const sqrtN = Math.ceil(Math.sqrt(N)); // Start with ceil(sqrt(N))
+  let a = sqrtN;
+  let b2 = a * a - N;
+  let b = Math.sqrt(b2);
+  
+  // Increment a until b^2 is close to a square or within reasonable range
+  while (!Number.isInteger(b) && a < sqrtN + 100) {
+    a++;
+    b2 = a * a - N;
+    b = Math.sqrt(b2);
+  }
+  
+  // Estimate range: sqrt(N) ± b
+  const rangeMin = Math.max(1, sqrtN - Math.floor(b));
+  const rangeMax = sqrtN + Math.floor(b);
+  
+  // Generate full-spectrum lock code
+  const lockCodes = {
+    unitOne: [`G-FS-DistE-50%-${rangeMin}-${rangeMax}`],
+    unitTwo: [],
+    unitThree: [],
+    unitFour: [],
+    unitFive: []
+  };
+  
+  return lockCodes;
+}
+
 morphPortal/
 export function Shard(id, digitFilter) {
   const skeleton = {
@@ -153,10 +225,12 @@ primeCUBE(skeleton);
 //NOTES:
 Updated Official Notes: Lock Code Patterns
 
+Official Notes: Lock Code Patterns
+
 FOLDING: Lock outside ~50-100 (Fold3A). Prunes ~50%.
 ZONES: Lock outside 100-200 (>200A, <100A). Prunes ~50%.
 EMIRPS: Lock non-emirps (103E). Prunes ~30%.
-REPETITION: Lock non-1-starts (2A, 3A). Prunes ~80%.
+REPETITION: Lock non-1-starts (2A, 3A, ..., 9A). Prunes ~80%. >>>>>>>>>>>> X
 SUM: Lock $ p \mod 9 + q \mod 9 \neq 4 $ (Sum9E). Prunes ~50%.
 RELAY CARRY BUS: Lock mismatch digits (3E, 3C). Prunes ~20%.
 RESIDUE POOL: Lock even-ending primes (EvenE). Prunes ~50%.
@@ -167,8 +241,11 @@ FRACTAL BOUNDARY ZONES: Lock outside sub-zones (FractalA). Prunes ~10x.
 SPECTRAL SUM LOCK: Lock mismatch spectral sums (SpecSumE). Prunes ~20%.
 ENTROPY GRADIENT LOCK: Lock skewed histograms (EntropyE). Prunes ~70%.
 REMAINDER LOCK: Lock large remainders (RemLargeE), prioritize small (RemSmallA). Prunes ~20%.
-GRAVITY CHECK: Lock large differentials (GravLargeE), prioritize small (GravSmallA), constrain range (GravRangeE). Prunes ~20-50%.
-
+GRAVITY CHECK: Lock large differentials (GravLargeE), prioritize small (GravSmallA), range (GravRangeE). Prunes ~20-50%.
+FRACTURING: Split 17689 into 17|869 (FractureA, FractureE). Prunes ~30%.
+NUMBER MODIFICATION: Lock non-matching mods (Mod9E, Mod7E). Prunes ~50%.
+COLOR-CODED WAVE PATTERNS: Group shards by wave paths (WaveRedA, WaveBlueE). Prunes ~50%.
+FACTOR DISTANCE LOCK: Lock outside $ \sqrt{N} \pm b $ (DistE). Prunes ~50%. >>>>>>>>>>>>> x
 
 Shard Tests: Shard 1 tests primes starting with 1 ([101, 107, 109, 111, 113]):
 
@@ -185,3 +262,51 @@ $ |r_{101} - r_{113}| = |14 - 0| = 14 $ (small, 101 close to 113).
 $ |r_{107} - r_{113}| = 34 $ (larger, 107 farther).
 
 
+TEST : 
+TEST-REPETITION
+import { unitOne, unitTwo, unitThree, unitFour, unitFive } from '../skeletonPrime/skeletonPrime.js';
+import { repetitionLock } from '../skeletonPrime/morphLock/LOCKS/repetitionLock.js';
+
+const skeleton = {
+  unit1: unitOne,
+  unit2: unitTwo,
+  unit3: unitThree,
+  unit4: unitFour,
+  unit5: unitFive
+};
+
+const lockCodes = repetitionLock(skeleton);
+console.log('Repetition Locks:', lockCodes);
+
+RESULTS : PS C:\Users\hopea\OneDrive\Desktop\ZetaMorph\test> node testRepetition.js
+Repetition Locks: {
+  unitOne: [ 'R-U1-2.3.4.5.6.7.8.9' ], REPERSENTS WHAT THE UNIT ONE CANNOT BE REPETITION R- UNIT U1 - 2.3.4.5.6.7.8.9
+  unitTwo: [],
+  unitThree: [],
+  unitFour: [],
+  unitFive: []
+}
+
+TESTGAP:
+import { unitOne, unitTwo, unitThree, unitFour, unitFive } from '../skeletonPrime/skeletonPrime.js';
+import { gapLock } from '../skeletonPrime/morphLock/LOCKS/gapLock.js';
+
+// Test 17689
+const skeleton17689 = {
+  unit1: unitOne,
+  unit2: unitTwo,
+  unit3: unitThree,
+  unit4: unitFour,
+  unit5: unitFive
+};
+
+console.log('Factor Distance Locks for 17689:', gapLock(skeleton17689));
+
+RESULTS:PS C:\Users\hopea\OneDrive\Desktop\ZetaMorph\test> node testGap.js       
+Factor Distance Locks for 17689: {
+  unitOne: [ 'G-FS-DistE-50%-133-133' ],
+  unitTwo: [],
+  unitThree: [],
+  unitFour: [],
+  unitFive: []
+}
